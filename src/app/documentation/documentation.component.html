@@ -1,0 +1,41 @@
+<div class="bg-[#1e293b] rounded-lg border border-[#334155] shadow-lg">
+  <div class="p-4 border-b border-[#334155] flex items-center justify-between">
+    <h2 class="text-base font-semibold text-white flex items-center">
+      <span class="mr-2">📄</span>
+      Relevant Documentation
+    </h2>
+  </div>
+
+  <div class="p-4">
+    @if (docs.length === 0) {
+    <div class="text-center py-4">
+      <p class="text-gray-500 text-sm">No documentation found</p>
+    </div>
+    } @else {
+    <div class="space-y-3">
+      @for (doc of docs; track doc.title) {
+      <a [href]="doc.url" target="_blank"
+        class="block p-3 bg-[#0f172a] rounded border border-[#334155] hover:border-[#475569] hover:bg-[#1e293b] transition-all group">
+
+        <div class="flex items-start">
+          <span class="text-lg mr-3 mt-0.5 opacity-70 group-hover:opacity-100">{{ getFolderIcon(doc.Foldername)
+            }}</span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors truncate">{{
+              doc.title }}</h3>
+            <div class="flex items-center mt-1">
+              @if (doc.Foldername) {
+              <span class="px-2 py-0.5 text-[10px] font-medium rounded border {{ getFolderColor(doc.Foldername) }}">
+                {{ doc.Foldername }}
+              </span>
+              }
+            </div>
+          </div>
+        </div>
+
+      </a>
+      }
+    </div>
+    }
+  </div>
+</div>

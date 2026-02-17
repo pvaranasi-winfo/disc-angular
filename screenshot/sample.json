@@ -1,0 +1,62 @@
+{
+    "id": "unique-guid-for-this-run",
+    "environment": "Dev",
+    "scanTimestamp": "2026-02-13T10:30:00Z",
+    "runId": "agent-run-123",
+    "summaryMetrics": {
+        "healthScore": 94,
+        "criticalCount": 0,
+        "upgradeCount": 1
+    },
+    "components": [
+        {
+            "name": "Oracle Database",
+            "type": "Database",
+            "currentVersion": "19.21.0.0.0",
+            "status": "Active",
+            "subComponents": [
+                {
+                    "name": "Oracle APEX",
+                    "version": "23.2.0"
+                }
+            ]
+        },
+        {
+            "name": "WinfoTest Application",
+            "type": "Application",
+            "currentVersion": "2.4.5",
+            "status": "Upgrade Available"
+        }
+    ],
+    "insights": {
+        "jiraTickets": [
+            {
+                "id": "WINFO-442",
+                "title": "Upgrade DB",
+                "priority": "High",
+				"description": "The current Tokyo region does not support OCI Gen-AI. We need to configure the Autonomous Database to call the London (LHR) endpoint for NL2SQL services."
+            }
+        ],
+        "github": [
+            {
+                "id": "10455",
+                "summary": "Configure Cross-Region Gen-AI Bridge (Tokyo to London)",
+                "description": "The current Tokyo region does not support OCI Gen-AI. We need to configure the Autonomous Database to call the London (LHR) endpoint for NL2SQL services.",
+                "tag": "infra"
+            }
+        ],
+        "docs": [
+            {
+                "title": "Upgrade Guide",
+                "url": "https://...",
+                "Description": "UpgradeUpgradeUpgradeUpgrade",
+				"Foldername":"Upgrade"
+            }
+        ]
+    },
+    "_rid": "US0eAIUeAxcBAAAAAAAAAA==",
+    "_self": "dbs/US0eAA==/colls/US0eAIUeAxc=/docs/US0eAIUeAxcBAAAAAAAAAA==/",
+    "_etag": "\"95002903-0000-2000-0000-6992c42f0000\"",
+    "_attachments": "attachments/",
+    "_ts": 1771226159
+}
