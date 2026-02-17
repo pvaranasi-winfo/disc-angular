@@ -12,6 +12,7 @@ export class DetectedComponentsComponent {
   @Input() components: ComponentType[] = [];
 
   getStatusColor(status: string): string {
+    if(!status) return 'text-slate-400 bg-slate-500/10 border border-slate-500/20'; // default for unknown status
     switch (status.toLowerCase()) {
       case 'active':
         return 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20';
@@ -25,17 +26,18 @@ export class DetectedComponentsComponent {
   }
 
   getTypeIcon(type: string): string {
+    if(!type) return 'pi pi-box'; // default icon for unknown types
     switch (type.toLowerCase()) {
       case 'database':
-        return '🗃️';
+        return 'pi pi-database';
       case 'application':
-        return '⚡';
+        return 'pi pi-bolt';
       case 'service':
-        return '🔧';
+        return 'pi pi-wrench';
       case 'api':
-        return '🔌';
+        return 'pi pi-plug';
       default:
-        return '📦';
+        return 'pi pi-box';
     }
   }
 }

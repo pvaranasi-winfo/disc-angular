@@ -12,22 +12,23 @@ export class DocumentationComponent {
   @Input() docs: Documentation[] = [];
 
   getFolderIcon(folderName: string): string {
+    if(!folderName) return '📁'; // default icon for unknown folders
     switch (folderName.toLowerCase()) {
       case 'upgrade':
       case 'upgrades':
-        return '🔄';
+        return 'pi pi-refresh';
       case 'troubleshooting':
-        return '🔧';
+        return 'pi pi-wrench';
       case 'installation':
       case 'install':
-        return '⚙️';
+        return 'pi pi-cog';
       case 'configuration':
       case 'config':
-        return '⚙️';
+        return 'pi pi-cog';
       case 'api':
-        return '🔌';
+        return 'pi pi-plug';
       case 'security':
-        return '🔒';
+        return 'pi pi-lock';
       case 'performance':
         return '📊';
       default:
@@ -36,6 +37,7 @@ export class DocumentationComponent {
   }
 
   getFolderColor(folderName: string): string {
+    if(!folderName) return 'text-slate-400 bg-slate-500/10 border-slate-500/20'; // default for unknown folders
     switch (folderName.toLowerCase()) {
       case 'upgrade':
       case 'upgrades':

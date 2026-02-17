@@ -11,7 +11,8 @@ import { CommonModule } from '@angular/common';
 export class JiraTicketsComponent {
   @Input() tickets: JiraTicket[] = [];
 
-  getPriorityColor(priority: string): string {
+  getPriorityColor(priority: string | undefined | null): string {
+    if (!priority) return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
     switch (priority.toLowerCase()) {
       case 'high':
       case 'critical':
@@ -25,17 +26,33 @@ export class JiraTicketsComponent {
     }
   }
 
-  getPriorityIcon(priority: string): string {
+  getPriorityBorderColor(priority: string | undefined | null): string {
+    if (!priority) return 'border-slate-500';
     switch (priority.toLowerCase()) {
       case 'high':
       case 'critical':
-        return '🔴';
+        return 'border-rose-500';
       case 'medium':
-        return '🟡';
+        return 'border-amber-500';
       case 'low':
-        return '🟢';
+        return 'border-emerald-500';
       default:
-        return '⚪';
+        return 'border-slate-500';
+    }
+  }
+
+  getPriorityIcon(priority: string | undefined | null): string {
+    if (!priority) return 'pi pi-circle';
+    switch (priority.toLowerCase()) {
+      case 'high':
+      case 'critical':
+        return 'pi pi-exclamation-triangle'; // red warning
+      case 'medium':
+        return 'pi pi-info-circle'; // yellow info
+      case 'low':
+        return 'pi pi-check-circle'; // green check
+      default:
+        return 'pi pi-circle'; // default circle
     }
   }
 

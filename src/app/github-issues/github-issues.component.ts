@@ -12,42 +12,37 @@ export class GithubIssuesComponent {
   @Input() issues: GithubIssue[] = [];
 
   getTagColor(tag: string): string {
+    if(!tag) return 'bg-slate-500/20 text-slate-400'; // default for unknown tags
     switch (tag.toLowerCase()) {
-      case 'bug':
-        return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-      case 'enhancement':
-      case 'feature':
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
       case 'infra':
-      case 'infrastructure':
-        return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
-      case 'documentation':
-      case 'docs':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-      case 'security':
-        return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+        return 'bg-purple-500/20 text-purple-400';
+      case 'bug':
+        return 'bg-red-500/20 text-red-400';
+      case 'feature':
+        return 'bg-blue-500/20 text-blue-400';
       default:
-        return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+        return 'bg-slate-500/20 text-slate-400';
     }
   }
 
   getTagIcon(tag: string): string {
+    if(!tag) return 'pi pi-tag'; // default icon for unknown tags
     switch (tag.toLowerCase()) {
       case 'bug':
-        return '🐛';
+        return 'pi pi-bug';
       case 'enhancement':
       case 'feature':
-        return '✨';
+        return 'pi pi-star';
       case 'infra':
       case 'infrastructure':
-        return '🏗️';
+        return 'pi pi-cog';
       case 'documentation':
       case 'docs':
-        return '📚';
+        return 'pi pi-book';
       case 'security':
-        return '🔒';
+        return 'pi pi-lock';
       default:
-        return '🏷️';
+        return 'pi pi-tag';
     }
   }
 

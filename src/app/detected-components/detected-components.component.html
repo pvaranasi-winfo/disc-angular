@@ -4,34 +4,37 @@
   </div>
 
   @if (components.length === 0) {
-  <div class="text-center py-8 bg-[#1e293b] rounded-lg border border-[#334155]">
-    <p class="text-gray-400">No components detected</p>
+  <div class="text-center py-8 dashboard-card">
+    <p class="text-slate-400">No components detected</p>
   </div>
   } @else {
   <div class="space-y-3">
     @for (component of components; track component.name) {
-    <div
-      class="bg-[#1e293b] rounded-lg p-4 border border-[#334155] flex items-center justify-between hover:border-[#475569] transition-colors">
-
+    <div class="dashboard-card p-4 flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <div class="p-2 bg-[#0f172a] rounded-lg border border-[#334155]">
-          <span class="text-xl">{{ getTypeIcon(component.type) }}</span>
+        <div class="component-icon ">
+          <span [ngClass]="getTypeIcon(component.type)" class="pi"></span>
         </div>
         <div>
           <h3 class="font-medium text-white">{{ component.name }}</h3>
-          <p class="text-xs text-gray-400">v{{ component.currentVersion }}</p>
+          <p class="text-xs text-slate-400">v{{ component.currentVersion }}</p>
+          @if (component.subComponents && component.subComponents.length > 0) {
+          <div class="mt-1 flex flex-wrap gap-2">
+            @for (sub of component.subComponents; track sub.name) {
+            <span class="text-xs text-slate-500">{{ sub.name }}: <span class="text-slate-400">v{{ sub.version
+                }}</span></span>
+            }
+          </div>
+          }
         </div>
       </div>
 
       <div class="flex items-center space-x-4">
-        @if (component.subComponents && component.subComponents.length > 0) {
-        <span class="text-xs text-gray-500 hidden sm:block">{{ component.subComponents.length }} sub-modules</span>
-        }
-        <span class="px-2.5 py-0.5 text-xs font-medium rounded {{ getStatusColor(component.status) }}">
+        <span
+          class="{{ component.status === 'Active' ? 'badge-active' : (component.status === 'Upgrade Available' ? 'badge-upgrade' : 'badge-medium') }}">
           {{ component.status.toUpperCase() }}
         </span>
       </div>
-
     </div>
     }
   </div>
