@@ -63,7 +63,7 @@ export interface DashboardData {
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://winfotest-da-core-dgdjd0ejcza2axda.centralindia-01.azurewebsites.net/api/Root/da3dd39a-d430-47dd-a912-2e37e2580c6c';
+  private apiUrl = 'https://winfotest-da-api.azurewebsites.net/api/Root/da3dd39a-d430-47dd-a912-2e37e2580c6c';
 
   getDashboardData(): Observable<DashboardData> {
     return this.http.get<DashboardData>(this.apiUrl);
