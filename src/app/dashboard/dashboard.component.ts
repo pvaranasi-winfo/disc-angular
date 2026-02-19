@@ -20,13 +20,20 @@ import { DocumentationComponent } from '../documentation/documentation.component
 })
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
-  
+
   protected dashboardData = signal<DashboardData | null>(null);
   protected loading = signal(true);
   protected error = signal<string | null>(null);
 
   ngOnInit() {
     this.loadDashboardData();
+    // Fallback: if data not loaded in 1s, show error
+    setTimeout(() => {
+      if (this.loading() && !this.dashboardData()) {
+        this.error.set('Dashboard data failed to load (timeout).');
+        this.loading.set(false);
+      }
+    }, 1000);
   }
 
   private loadDashboardData() {

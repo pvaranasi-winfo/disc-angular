@@ -1,3 +1,4 @@
+  
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
@@ -63,10 +64,103 @@ export interface DashboardData {
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://winfotest-da-api.azurewebsites.net/api/Root/da3dd39a-d430-47dd-a912-2e37e2580c6c';
+  // Dummy data for dashboard
+  private dummy: DashboardData = {
+    id: 'dummy-id',
+    environment: 'Dev',
+    scanTimestamp: new Date().toISOString(),
+    runId: 'dummy-run',
+    summaryMetrics: {
+      healthScore: 95,
+      criticalCount: 1,
+      upgradeCount: 2
+    },
+    components: [
+      {
+        name: 'Oracle Database',
+        type: 'Database',
+        currentVersion: '19.21.0.0.0',
+        status: 'Active',
+        subComponents: [
+          { name: 'Oracle APEX', version: '23.2.0' }
+        ]
+      },
+      {
+        name: 'WinfoTest Application',
+        type: 'Application',
+        currentVersion: '2.4.5',
+        status: 'Upgrade Available'
+      }
+    ],
+    insights: {
+      jiraTickets: [
+        {
+          id: 'WINFO-442',
+          title: 'Upgrade DB',
+          priority: 'High',
+          description: 'The current Tokyo region does not support OCI Gen-AI. We need to configure the Autonomous Database to call the London (LHR) endpoint for NL2SQL services.'
+        }
+      ],
+      github: [
+        {
+          id: '10455',
+          summary: 'Configure Cross-Region Gen-AI Bridge (Tokyo to London)',
+          description: 'The current Tokyo region does not support OCI Gen-AI. We need to configure the Autonomous Database to call the London (LHR) endpoint for NL2SQL services.',
+          tag: 'infra'
+        }
+      ],
+      docs: [
+        {
+          title: 'Upgrade Guide',
+          url: 'https://example.com/upgrade-guide',
+          Description: 'Upgrade instructions for the application.',
+          Foldername: 'Upgrade'
+        }
+      ]
+    }
+  };
 
-  getDashboardData(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(this.apiUrl);
+  // 1. Fetch all projects
+  getProjects(): Observable<any[]> {
+    return of([
+      { id: 'proj-1', projectName: 'Demo Project Alpha', createdDate: new Date('2026-02-01T10:00:00Z') },
+      { id: 'proj-2', projectName: 'Demo Project Beta', createdDate: new Date('2026-02-10T14:30:00Z') },
+      { id: 'proj-3', projectName: 'Demo Project Gamma', createdDate: new Date('2026-02-15T09:15:00Z') }
+    ]);
+  }
+
+  // 2. Create a project
+  createProject(payload: any): Observable<any> {
+    return of({ ...payload, id: 'proj-' + Math.floor(Math.random() * 10000) });
+  }
+
+  // 3. Delete a project
+  deleteProject(projectId: string): Observable<any> {
+    return of({ success: true });
+  }
+
+
+  // Fetch dashboard data for a specific environment (dummy)
+  getDashboardDataForEnv(env: string): Observable<DashboardData> {
+    // Return dummy data with environment changed
+    return of({ ...this.dummy, environment: env, scanTimestamp: new Date().toISOString() });
+  }
+  // 4. Fetch dashboard details for a project
+  getDashboardData(projectId?: string): Observable<DashboardData> {
+    // Always return dummy data for now
+    return of(this.dummy);
+  }
+
+  // 5. Save/update MCP config for a project
+  saveMcpConfig(projectId: string, mcpConfig: any): Observable<any> {
+    // Simulate backend save
+    return of({ success: true, updated: true });
+  }
+
+  // 6. Re-run agent/refresh dashboard after MCP config update
+  rerunAgent(projectId: string): Observable<any> {
+    // Simulate agent run
+    return of({ success: true, runId: 'dummy-run-' + Math.floor(Math.random() * 10000) });
   }
 }
 

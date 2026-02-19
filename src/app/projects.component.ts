@@ -24,9 +24,21 @@ export class ProjectsComponent {
     this.loadProjects();
   }
 
-  loadProjects() {
-    this.http.get<any[]>('/api/projects').subscribe(data => this.projects = data);
-  }
+  private loadProjects() {
+    // Directly assign dummy data
+    this.projects = [
+      { id: 'proj-1', projectName: 'Demo Project Alpha', createdDate: new Date('2026-02-01T10:00:00Z') },
+      { id: 'proj-2', projectName: 'Demo Project Beta', createdDate: new Date('2026-02-10T14:30:00Z') },
+      { id: 'proj-3', projectName: 'Demo Project Gamma', createdDate: new Date('2026-02-15T09:15:00Z') },
+      { id: 'proj-4', projectName: 'WinfoTest Internal', createdDate: new Date('2026-01-20T08:45:00Z') },
+        { id: 'proj-5', projectName: 'Customer Portal', createdDate: new Date('2025-12-11T16:10:00Z') },
+        { id: 'proj-6', projectName: 'Analytics Suite', createdDate: new Date('2026-02-18T11:22:00Z') },
+        { id: 'proj-7', projectName: 'Legacy Migration', createdDate: new Date('2025-11-05T09:00:00Z') },
+        { id: 'proj-8', projectName: 'CloudOps Automation', createdDate: new Date('2026-02-10T13:00:00Z') },
+        { id: 'proj-9', projectName: 'Mobile App Redesign', createdDate: new Date('2026-01-30T10:30:00Z') },
+        { id: 'proj-10', projectName: 'AI Research', createdDate: new Date('2026-02-17T15:00:00Z') }
+      ];
+    }
 
   openCreateProjectModal() {
     this.newProjectName = '';
@@ -42,16 +54,12 @@ export class ProjectsComponent {
       projectName: this.newProjectName.trim(),
       createdDate: new Date().toISOString()
     };
-    this.http.post('/api/projects', payload).subscribe({
-      next: (res: any) => {
-        this.projects.push(res);
-        this.showCreateModal = false;
-        this.isCreating = false;
-      },
-      error: () => {
-        this.isCreating = false;
-      }
-    });
+    // Dummy service
+    setTimeout(() => {
+      this.projects.push({ ...payload, id: 'proj-' + Math.floor(Math.random() * 10000) });
+      this.showCreateModal = false;
+      this.isCreating = false;
+    }, 500);
   }
 
   viewDashboard(project: any) {
@@ -68,14 +76,10 @@ export class ProjectsComponent {
   }
   deleteProject() {
     if (!this.projectToDelete) return;
-    this.http.delete(`/api/projects/${this.projectToDelete.id}`).subscribe({
-      next: () => {
-        this.projects = this.projects.filter(p => p.id !== this.projectToDelete.id);
-        this.closeDeleteModal();
-      },
-      error: () => {
-        this.closeDeleteModal();
-      }
-    });
+    // Dummy service
+    setTimeout(() => {
+      this.projects = this.projects.filter(p => p.id !== this.projectToDelete.id);
+      this.closeDeleteModal();
+    }, 500);
   }
 }

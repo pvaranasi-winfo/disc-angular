@@ -8,24 +8,60 @@
 
   <div class="flex items-center gap-3">
     <!-- Environment Badges -->
-    <button class="env-button {{ data?.environment === 'Dev' ? 'active' : '' }}">Dev</button>
-    <button class="env-button {{ data?.environment === 'UAT' ? 'active' : '' }}">UAT</button>
-    <button class="env-button {{ data?.environment === 'Prod' ? 'active' : '' }}">Prod</button>
+    <button class="env-button {{ selectedEnvironment === 'Dev' ? 'active' : '' }}" (click)="setEnvironment('Dev')">Dev</button>
+    <button class="env-button {{ selectedEnvironment === 'UAT' ? 'active' : '' }}" (click)="setEnvironment('UAT')">UAT</button>
+    <button class="env-button {{ selectedEnvironment === 'Prod' ? 'active' : '' }}" (click)="setEnvironment('Prod')">Prod</button>
 
-    <!-- History Button -->
-    <!-- <button class="env-button flex items-center gap-2" title="History">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </button> -->
+    <!-- Configure MCP Button -->
+    <button class="env-button bg-cyan-600 text-white hover:bg-cyan-700" (click)="showConfigureMcpPanel = true"><i class="pi pi-wrench"></i></button>
+
+<!-- MCP Config Slide-in Panel -->
+<div *ngIf="showConfigureMcpPanel" class="fixed inset-0 z-50 flex items-end justify-end">
+  <div class="absolute inset-0 bg-black bg-opacity-40" (click)="closeConfigureMcpPanel()"></div>
+  <div class="relative z-10 w-full max-w-md h-full flex flex-col bg-gray-900 shadow-2xl slide-in-panel">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+      <h2 class="text-xl font-bold text-white">Configure MCP</h2>
+      <button class="text-gray-400 hover:text-white text-2xl font-bold" (click)="closeConfigureMcpPanel()">&times;</button>
+    </div>
+    <form class="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4" (ngSubmit)="saveMcpConfigs()">
+      <ng-container *ngFor="let key of mcpKeys">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-gray-300 font-medium capitalize">{{ key }} JSON</label>
+            <button type="button" class="env-button bg-blue-700 text-white text-xs px-2 py-1 hover:bg-blue-800" (click)="downloadSampleJson(key)">
+              <i class="pi pi-download"></i> 
+            </button>
+          </div>
+          <textarea class="w-full border border-gray-700 rounded px-3 py-2 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" rows="4" [(ngModel)]="mcpConfigs[key]" name="mcp-{{key}}" (blur)="validateJsonInput(key)"></textarea>
+          <div *ngIf="mcpErrors[key]" class="text-red-400 text-xs mt-1">{{ mcpErrors[key] }}</div>
+        </div>
+      </ng-container>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="env-button bg-gray-700 text-gray-200" (click)="closeConfigureMcpPanel()">Cancel</button>
+        <button type="submit" class="env-button bg-cyan-600 text-white font-semibold hover:bg-cyan-700">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+    
 
     <!-- Refresh Button -->
     <button class="env-button" title="Refresh">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
+      <i class="pi pi-sync"></i>
     </button>
+  </div>
+
+  <!-- Toast Modal -->
+  <div *ngIf="toastMessage" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+    <div class="relative z-10 max-w-xs w-full bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col items-center border"
+         [ngClass]="toastType === 'success' ? 'border-green-500' : 'border-red-500'">
+      <div class="text-3xl mb-2">
+        <span *ngIf="toastType === 'success'">✔️</span>
+        <span *ngIf="toastType === 'error'">❌</span>
+      </div>
+      <div class="text-white text-center mb-4">{{ toastMessage }}</div>
+      <button class="env-button bg-gray-700 text-gray-200 w-full" (click)="closeToast()">Close</button>
+    </div>
   </div>
 </div>
