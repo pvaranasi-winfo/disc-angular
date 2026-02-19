@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark Theme Base Styles */
+/* Light Theme Base Styles */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,39 +10,41 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #1e293b;
 }
 
-/* Dashboard Dark Theme */
+/* Dashboard Light Theme */
 .dashboard-container {
-  background-color: #0f172a;
+  background-color: #f8fafc;
   min-height: 100vh;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .dashboard-card {
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
 }
 
 .dashboard-card:hover {
-  background-color: #334155;
-  border-color: #475569;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .metric-card {
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 1.5rem;
 }
 
 /* Environment Selector Buttons */
 .env-button {
-  background-color: #334155;
-  color: #94a3b8;
-  border: 1px solid #475569;
+  background-color: #e2e8f0;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   font-size: 0.875rem;
@@ -52,20 +54,20 @@ body {
 }
 
 .env-button:hover {
-  background-color: #475569;
-  color: #ffffff;
+  background-color: #cbd5e1;
+  color: #1e293b;
 }
 
 .env-button.active {
-  background-color: #22d3ee;
-  color: #0f172a;
-  border-color: #22d3ee;
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
 }
 
 /* Status Badges */
 .badge-active {
-  background-color: #10b98133;
-  color: #10b981;
+  background-color: #d1fae5;
+  color: #059669;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -74,8 +76,8 @@ body {
 }
 
 .badge-upgrade {
-  background-color: #f59e0b33;
-  color: #f59e0b;
+  background-color: #fef3c7;
+  color: #b45309;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -84,8 +86,8 @@ body {
 }
 
 .badge-high {
-  background-color: #ef444433;
-  color: #ef4444;
+  background-color: #fee2e2;
+  color: #b91c1c;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -94,8 +96,8 @@ body {
 }
 
 .badge-medium {
-  background-color: #f59e0b33;
-  color: #f59e0b;
+  background-color: #fef3c7;
+  color: #b45309;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -105,25 +107,25 @@ body {
 
 /* Icon Colors */
 .icon-success {
-  color: #10b981;
+  color: #059669;
 }
 
 .icon-warning {
-  color: #f59e0b;
+  color: #b45309;
 }
 
 .icon-error {
-  color: #ef4444;
+  color: #b91c1c;
 }
 
 .icon-info {
-  color: #22d3ee;
+  color: #2563eb;
 }
 
 /* Jira Ticket Card */
 .jira-ticket {
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-left: 3px solid;
   border-radius: 6px;
   padding: 1rem;
@@ -132,30 +134,30 @@ body {
 }
 
 .jira-ticket:hover {
-  background-color: #334155;
+  background-color: #f1f5f9;
 }
 
 .jira-ticket.priority-high {
-  border-left-color: #ef4444;
+  border-left-color: #b91c1c;
 }
 
 .jira-ticket.priority-medium {
-  border-left-color: #f59e0b;
+  border-left-color: #b45309;
 }
 
 .jira-ticket.priority-low {
-  border-left-color: #22d3ee;
+  border-left-color: #2563eb;
 }
 
 /* Documentation Links */
 .doc-link {
-  color: #22d3ee;
+  color: #2563eb;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 }
 
 .doc-link:hover {
-  color: #67e8f9;
+  color: #60a5fa;
   text-decoration: underline;
 }
 
@@ -171,18 +173,18 @@ body {
 }
 
 .component-icon.database {
-  background-color: #7c3aed33;
-  color: #a78bfa;
+  background-color: #ede9fe;
+  color: #7c3aed;
 }
 
 .component-icon.application {
-  background-color: #33415533;
-  color: #94a3b8;
+  background-color: #e0e7ef;
+  color: #64748b;
 }
 
 .component-icon.service {
-  background-color: #33415533;
-  color: #94a3b8;
+  background-color: #e0e7ef;
+  color: #64748b;
 }
 
 /* Scrollbar Styling */
@@ -192,14 +194,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #e2e8f0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #cbd5e1;
 }

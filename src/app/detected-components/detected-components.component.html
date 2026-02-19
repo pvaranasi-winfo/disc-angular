@@ -1,28 +1,27 @@
 <div class="space-y-4">
   <div class="flex items-center justify-between mb-2">
-    <h2 class="text-lg font-semibold text-white">Detected Components</h2>
+    <h2 class="text-lg font-semibold text-gray-900">Detected Components</h2>
   </div>
 
   @if (components.length === 0) {
   <div class="text-center py-8 dashboard-card">
-    <p class="text-slate-400">No components detected</p>
+    <p class="text-gray-500">No components detected</p>
   </div>
   } @else {
   <div class="space-y-3">
     @for (component of components; track component.name) {
-    <div class="dashboard-card p-4 flex items-center justify-between">
+    <div class="dashboard-card p-6 flex items-center justify-between rounded-2xl shadow-2xl border-2 border-gray-100 mb-4 hover:shadow-blue-100 hover:border-blue-200 transition-all">
       <div class="flex items-center space-x-4">
         <div class="component-icon ">
           <span [ngClass]="getTypeIcon(component.type)" class="pi"></span>
         </div>
         <div>
-          <h3 class="font-medium text-white">{{ component.name }}</h3>
-          <p class="text-xs text-slate-400">v{{ component.currentVersion }}</p>
+          <h3 class="font-medium text-gray-900">{{ component.name }}</h3>
+          <p class="text-xs text-gray-500">v{{ component.currentVersion }}</p>
           @if (component.subComponents && component.subComponents.length > 0) {
           <div class="mt-1 flex flex-wrap gap-2">
             @for (sub of component.subComponents; track sub.name) {
-            <span class="text-xs text-slate-500">{{ sub.name }}: <span class="text-slate-400">v{{ sub.version
-                }}</span></span>
+            <span class="text-xs text-gray-500">{{ sub.name }}: <span class="text-gray-400">v{{ sub.version }}</span></span>
             }
           </div>
           }
