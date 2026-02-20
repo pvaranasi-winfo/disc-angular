@@ -1,0 +1,220 @@
+{
+  "comparison": [
+    {
+      "component": "Database Engine",
+      "current": "Oracle 18c XE",
+      "recommended": "Oracle 21c (LTS)",
+      "why": "Native JSON type, Blockchain tables, and Long Term Support."
+    },
+    {
+      "component": "Operating System",
+      "current": "Ubuntu 18.04",
+      "recommended": "Ubuntu 22.04 LTS",
+      "why": "Security patching for 18.04 has ended; 22.04 is required for 21c."
+    },
+    {
+      "component": "Java Runtime",
+      "current": "OpenJDK 8",
+      "recommended": "OpenJDK 11/17",
+      "why": "Improved performance and compatibility with modern SpringBoot/Quartz."
+    }
+  ],
+  "recommendations": [
+    {
+      "description": "Oracle 21c provides immutable blockchain tables. Consider migrating sensitive audit/log tables to blockchain tables for enhanced tamper-protection.",
+      "feature": "Blockchain Tables",
+      "impacted_objects": [
+        "AUDIT_SCRIPT_EXECUTION_TRAIL",
+        "AUDIT_STAGE_LOOKUP",
+        "EXECUTE_STATUS_LOG",
+        "HTE_AUDIT_SCRIPT_EXECUTION_TRAIL",
+        "HTE_WIN_TA_EXECUTION_AUDIT"
+      ]
+    }
+  ],
+  "roadmap": [
+    {
+      "application": "Oracle Linux",
+      "current": "7.9",
+      "guideline": "Fresh install or Yum upgrade.",
+      "observation": "Baseline stability for 21c.",
+      "target": "8.x"
+    },
+    {
+      "application": "Ubuntu Desktop",
+      "current": "18.02 LTS",
+      "guideline": "Use do-release-upgrade.",
+      "observation": "Modern LTS platform.",
+      "target": "24.04"
+    },
+    {
+      "application": "Oracle Database",
+      "current": "18c XE",
+      "guideline": "Use Oracle AutoUpgrade tool.",
+      "observation": "Transition to Multitenant.",
+      "target": "21c"
+    },
+    {
+      "application": "Oracle APEX",
+      "current": "22c",
+      "guideline": "Export/Import & run Advisor.",
+      "observation": "Enhanced UI and AI features.",
+      "target": "24.2"
+    },
+    {
+      "application": "ORDS",
+      "current": "22c",
+      "guideline": "Update configuration files.",
+      "observation": "Required for APEX 24.2.",
+      "target": "25.3"
+    },
+    {
+      "application": "Apache Tomcat (APEX)",
+      "current": "9.0.62",
+      "guideline": "Replace binaries; verify libs.",
+      "observation": "Security & performance fixes.",
+      "target": "9.0.113"
+    },
+    {
+      "application": "Backend Tomcat",
+      "current": "9.0.62",
+      "guideline": "JVM tuning recommended.",
+      "observation": "Support for modern Java.",
+      "target": "9.0.113"
+    },
+    {
+      "application": "Selenium Grid",
+      "current": "4.6",
+      "guideline": "Update Grid 4 configuration.",
+      "observation": "Browser compatibility.",
+      "target": "4.38"
+    },
+    {
+      "application": "Chrome Browser & Driver",
+      "current": "89",
+      "guideline": "Match Driver and Browser versions.",
+      "observation": "Critical for modern web.",
+      "target": "143.0.7499.146"
+    },
+    {
+      "application": "Java",
+      "current": "OpenJDK 11",
+      "guideline": "Update JAVA_HOME and PATH.",
+      "observation": "LTS support (17/21).",
+      "target": "Latest (LTS)"
+    },
+    {
+      "application": "Selenium WebDriver",
+      "current": "4.6",
+      "guideline": "Update pom.xml dependencies.",
+      "observation": "Maven dependency update.",
+      "target": "Latest"
+    },
+    {
+      "application": "SpringBoot",
+      "current": "2.x",
+      "guideline": "Update namespace to jakarta.*.",
+      "observation": "Jakarta EE migration.",
+      "target": "3.x"
+    }
+  ],
+  "sharepoint": {
+    "file_category_distribution": {
+      "deployment-documentation": 2,
+      "financial-document": 2,
+      "other": 27,
+      "presentation": 1,
+      "project-plan": 2,
+      "report": 2,
+      "technical-specification": 1,
+      "user-manual": 1
+    },
+    "file_samples": [
+      {
+        "name": "Microsoft Copilot Chat Files",
+        "site": "Murali Thokala",
+        "size": 0
+      },
+      {
+        "name": "Apps",
+        "site": "sumera bhanu",
+        "size": 0
+      },
+      {
+        "name": "Advertising guidance",
+        "site": "Winfo-Intranet ",
+        "size": 0
+      },
+      {
+        "name": "Email templates",
+        "site": "Winfo-Intranet ",
+        "size": 0
+      },
+      {
+        "name": "Event assets",
+        "site": "Winfo-Intranet ",
+        "size": 0
+      },
+      {
+        "name": "Presentation templates",
+        "site": "Winfo-Intranet ",
+        "size": 0
+      }
+    ],
+    "site_type_distribution": {
+      "Personal/OneDrive": 25,
+      "SharePoint Site": 21
+    },
+    "storage_used_bytes": 884554166,
+    "total_files": 38,
+    "total_sites": 46
+  },
+  "stats": {
+    "avg_cols_per_table": 12.8,
+    "constraint_count": 45,
+    "data_type_distribution": {
+      "BLOB": 9,
+      "CHAR": 10,
+      "CLOB": 11,
+      "DATE": 174,
+      "FIELD VALUES ARE NULL": 2,
+      "FOREIGN KEY": 27,
+      "KEY": 37,
+      "LONG": 1,
+      "NUMBER": 282,
+      "NUMBER GENERATED ALWAYS AS IDENTITY MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE  NOKEEP  NOSCALE": 2,
+      "PRIMARY KEY": 31,
+      "TIMESTAMP": 65,
+      "UNIQUE": 17,
+      "UROWID": 1,
+      "VARCHAR2": 1128
+    },
+    "deprecated_types": {
+      "LONG": 1
+    },
+    "index_count": 57,
+    "table_count": 140,
+    "total_columns": 1797,
+    "unique_data_types": [
+      "BLOB",
+      "CHAR",
+      "CLOB",
+      "DATE",
+      "FIELD VALUES ARE NULL",
+      "FOREIGN KEY",
+      "KEY",
+      "LONG",
+      "NUMBER",
+      "NUMBER GENERATED ALWAYS AS IDENTITY MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE  NOKEEP  NOSCALE",
+      "PRIMARY KEY",
+      "TIMESTAMP",
+      "UNIQUE",
+      "UROWID",
+      "VARCHAR2"
+    ]
+  },
+  "strategy": {
+    "how": "Use Oracle Data Pump for a \"Side-by-Side\" migration. Perform a schema-only migration first, followed by data validation.",
+    "when": "Phase 1 (Preparation): Q2 2026 | Phase 2 (Migration): Q3 2026."
+  }
+}

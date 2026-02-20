@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinfoTest Discovery Agent - Oracle Upgrade</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = document.querySelectorAll('.step');
+            const views = document.querySelectorAll('.view');
+            let chartInstance = null;
+
+            // Navigation Logic
+            steps.forEach(step => {
+                step.addEventListener('click', () => {
+                    const stepId = step.getAttribute('data-step');
+
+                    steps.forEach(s => s.classList.remove('active'));
+                    step.classList.add('active');
+
+                    views.forEach(v => v.classList.remove('active'));
+                    document.getElementById(`${stepId}-view`).classList.add('active');
+                });
+            });
+
+            // Agentic Flow Logic
+            async function runAgenticProcess() {
+                const btn = document.getElementById('run-analysis-btn');
+                const overlay = document.getElementById('agent-overlay');
+                const results = document.getElementById('discovery-results');
+                const logContainer = document.getElementById('agent-logs');
+                const progress = document.getElementById('agent-progress');
+                const statusText = document.getElementById('agent-status');
+
+                btn.disabled = true;
+                btn.textContent = 'Agent Working...';
+                overlay.classList.add('active');
+                logContainer.innerHTML = '';
+
+                const logs = [
+                    { msg: '> INITIALIZING DISCOVERY AGENT...', type: 'system', delay: 500 },
+                    { msg: '> Connecting to local OCI environment...', type: 'system', delay: 800 },
+                    { msg: '> FOUND: Legacy Oracle 18c XE Instance', type: 'success', delay: 1000 },
+                    { msg: '> SCANNING SCHEMA: WATS_PROD', type: 'system', delay: 1200 },
+                    { msg: '> INFO: 24 Tables identified', type: 'system', delay: 1500 },
+                    { msg: '> WARNING: Deprecated data types detected (LONG, VARCHAR2)', type: 'warning', delay: 2000 },
+                    { msg: '> ANALYZING UPGRADE COMPATIBILITY...', type: 'system', delay: 2500 },
+                    { msg: '> Checking 21c Feature Alignment...', type: 'system', delay: 3000 },
+                    { msg: '> FETCHING SHAREPOINT DIAGNOSTICS...', type: 'system', delay: 3500 },
+                    { msg: '> COMPILING FINAL REPORT...', type: 'success', delay: 4500 }
+                ];
+
+                // Background Fetch
+                const dataPromise = fetch('http://127.0.0.1:5000/api/analyze').then(res => res.json());
+
+                // Process logs and progress
+                for (let i = 0; i < logs.length; i++) {
+                    await new Promise(r => setTimeout(r, logs[i].delay - (i > 0 ? logs[i - 1].delay : 0)));
+                    const entry = document.createElement('div');
+                    entry.className = `log-entry ${logs[i].type}`;
+                    entry.textContent = logs[i].msg;
+                    logContainer.appendChild(entry);
+                    logContainer.scrollTop = logContainer.scrollHeight;
+
+                    const perc = ((i + 1) / logs.length) * 100;
+                    progress.style.width = `${perc}%`;
+                    statusText.textContent = logs[i].msg.replace('> ', '');
+                }
+
+                const data = await dataPromise;
+                console.log('Agent analysis complete:', data);
+
+                if (data.error) {
+                    const errorEntry = document.createElement('div');
+                    errorEntry.className = 'log-entry warning';
+                    errorEntry.textContent = `> ERROR: ${data.error}`;
+                    logContainer.appendChild(errorEntry);
+                    btn.disabled = false;
+                    btn.textContent = 'Retry Analysis';
+                    return;
+                }
+
+                // Populate and Show Results
+                renderSchemaChart(data.stats);
+                renderRecommendations(data.recommendations);
+                renderRoadmap(data.roadmap);
+                renderComparison(data.comparison);
+                renderStrategy(data.strategy);
+                if (data.sharepoint) renderSharePoint(data.sharepoint);
+
+                await new Promise(r => setTimeout(r, 800)); // Final pause for wow factor
+                overlay.classList.remove('active');
+                results.classList.remove('hidden');
+
+                // Auto-navigate to Analysis
+                setTimeout(() => {
+                    const analysisStep = document.querySelector('[data-step="analysis"]');
+                    analysisStep.click();
+                }, 1500);
+            }
+
+            // Initialize with event listener instead of auto-run
+            const runBtn = document.getElementById('run-analysis-btn');
+            if (runBtn) {
+                runBtn.addEventListener('click', runAgenticProcess);
+            }
+
+            // Charts and Renders ...
+            function renderSchemaChart(stats) {
+                // Main Overview Chart
+                const ctx = document.getElementById('schemaChart').getContext('2d');
+                if (chartInstance) chartInstance.destroy();
+
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Tables', 'Indexes', 'Constraints'],
+                        datasets: [{
+                            data: [stats.table_count, stats.index_count, stats.constraint_count],
+                            backgroundColor: ['#2563eb', '#60a5fa', '#94a3b8'], // High-Contrast Blues
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right', // Side legend for density
+                                labels: {
+                                    color: '#1e293b',
+                                    boxWidth: 10,
+                                    font: { size: 11, weight: 'bold' }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Detailed Stats List
+                const statsList = document.getElementById('detailed-stats');
+                statsList.innerHTML = `
+            <div class="stat-item"><label>Total Columns</label><span>${stats.total_columns}</span></div>
+            <div class="stat-item"><label>Avg Cols/Table</label><span>${stats.avg_cols_per_table}</span></div>
+            <div class="stat-item"><label>Unique Types</label><span>${stats.unique_data_types.length}</span></div>
+            <div class="stat-item"><label>Legacy Types Found</label><span>${Object.keys(stats.deprecated_types).length}</span></div>
+        `;
+
+                // Data Type Distribution Chart
+                const typeCtx = document.getElementById('typeChart').getContext('2d');
+                const typeLabels = Object.keys(stats.data_type_distribution);
+                const typeData = Object.values(stats.data_type_distribution);
+
+                new Chart(typeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: typeLabels,
+                        datasets: [{
+                            label: 'Column Count',
+                            data: typeData,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                ticks: { color: '#64748b', font: { size: 10 } },
+                                grid: { color: '#e2e8f0' }
+                            },
+                            y: {
+                                ticks: { color: '#1e293b', font: { size: 10, weight: 'bold' } },
+                                grid: { display: false }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // Legacy Alerts
+                const alertsContainer = document.getElementById('legacy-alerts');
+                if (Object.keys(stats.deprecated_types).length > 0) {
+                    alertsContainer.innerHTML = `
+                <div class="legacy-card card warning">
+                    <h3>⚠️ Deprecated/Legacy Types Detected</h3>
+                    <p>The following legacy data types were found. Oracle 21c/23c best practices recommend migrating these to modern alternatives.</p>
+                    <div class="legacy-types-grid">
+                        ${Object.entries(stats.deprecated_types).map(([type, count]) => `
+                            <div class="legacy-item">
+                                <strong>${type}</strong>: Used in ${count} columns
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+                }
+            }
+
+            function renderRecommendations(recs) {
+                const container = document.getElementById('recommendations-container');
+                container.innerHTML = recs.map(rec => `
+            <div class="card">
+                <span class="badge">21c Feature</span>
+                <h3>${rec.feature}</h3>
+                <p>${rec.description}</p>
+                <div class="impact">
+                    <strong>Impacted:</strong> ${Array.isArray(rec.impacted_objects) ? rec.impacted_objects.join(', ') : rec.impacted_objects}
+                </div>
+            </div>
+        `).join('');
+            }
+
+            function renderRoadmap(roadmap) {
+                const body = document.getElementById('roadmap-body');
+                body.innerHTML = roadmap.map(step => `
+            <tr>
+                <td><strong>${step.application}</strong></td>
+                <td><span class="bad">${step.current}</span></td>
+                <td><span class="good">${step.target}</span></td>
+                <td>
+                    <div class="observation"><em>${step.observation}</em></div>
+                    <div class="guideline"><strong>Guideline:</strong> ${step.guideline}</div>
+                </td>
+            </tr>
+        `).join('');
+            }
+
+            function renderComparison(comparison) {
+                const body = document.getElementById('comparison-body');
+                body.innerHTML = comparison.map(item => `
+            <tr>
+                <td><strong>${item.component}</strong></td>
+                <td><span class="bad">${item.current}</span></td>
+                <td><span class="good">${item.recommended}</span></td>
+                <td>${item.why}</td>
+            </tr>
+        `).join('');
+            }
+
+            function renderStrategy(strategy) {
+                document.getElementById('strategy-how').textContent = strategy.how;
+                document.getElementById('strategy-when').textContent = strategy.when;
+            }
+
+            function renderSharePoint(spData) {
+                // Site Type Distribution
+                const typeCtx = document.getElementById('spTypeChart').getContext('2d');
+                new Chart(typeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(spData.site_type_distribution),
+                        datasets: [{
+                            data: Object.values(spData.site_type_distribution),
+                            backgroundColor: ['#2563eb', '#94a3b8'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } }
+                    }
+                });
+
+                // File Samples List
+                const fileList = document.getElementById('sp-file-list');
+                fileList.innerHTML = spData.file_samples.map(file => {
+                    return `
+                <div class="file-item">
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-meta">
+                        <span>${file.site}</span>
+                    </div>
+                </div>
+            `;
+                }).join('');
+
+                // File Category Distribution
+                const fileCtx = document.getElementById('spFileChart').getContext('2d');
+                new Chart(fileCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(spData.file_category_distribution),
+                        datasets: [{
+                            data: Object.values(spData.file_category_distribution),
+                            backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
+                    }
+                });
+
+                // Stats List
+                const spStats = document.getElementById('sp-stats');
+                const gbUsed = (spData.storage_used_bytes / (1024 * 1024 * 1024)).toFixed(2);
+                spStats.innerHTML = `
+            <div class="stat-item"><label>Total Sites</label><span>${spData.total_sites}</span></div>
+            <div class="stat-item"><label>Total Files</label><span>${spData.total_files}</span></div>
+            <div class="stat-item"><label>Storage (GB)</label><span>${gbUsed} GB</span></div>
+        `;
+            }
+
+            init();
+        });
+
+    </script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg: #ffffff;
+            --app-bg: #f1f5f9;
+            /* Slightly darker gray for better card pop */
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --border-soft: #f1f5f9;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --warning: #ca8a04;
+            --success: #16a34a;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --agent-glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--app-bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.4;
+            /* Compact line height */
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+            /* Standard dashboard font size */
+        }
+
+        .app-container {
+            max-width: 1400px;
+            /* Wider for desktop density */
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            /* Reduced padding */
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            /* Reduced margin */
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text);
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .status-badge {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            /* Standard square-ish badge */
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        /* Compact Chevron Nav */
+        .chevron-nav {
+            display: flex;
+            margin-bottom: 2rem;
+            /* Reduced margin */
+            background: #ffffff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .step {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            /* Compact padding */
+            display: flex;
+            flex-direction: row;
+            /* Horizontal for density */
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
+            background: #ffffff;
+            color: var(--secondary);
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: inherit;
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+            z-index: 2;
+            border-left: 1px solid var(--border);
+        }
+
+        .step.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .step.active .step-num {
+            color: #ffffff;
+            opacity: 0.9;
+        }
+
+        .step-num {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .step-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .chart-container {
+            height: 180px;
+            /* Reduced for vertical density */
+            position: relative;
+            margin: 0.5rem 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            /* Reduced gap */
+            margin-top: 1rem;
+        }
+
+        /* Compact Professional Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            /* Reduced padding */
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            border-left: 3px solid var(--primary);
+            padding-left: 0.75rem;
+        }
+
+        /* Hero Section - Compact */
+        .hero {
+            text-align: left;
+            /* Alignment change for density */
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 1.75rem;
+            /* Drastic reduction */
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* Section Headlines - Compact */
+        .view h2 {
+            margin: 1.5rem 0 1rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.25rem;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* Stats Styling */
+        .stat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            /* Tighter list */
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .stat-item label {
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .stat-item span {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        /* Alerts - Compact */
+        .alerts-container {
+            margin: 1.5rem 0;
+        }
+
+        .legacy-card.warning {
+            border-left: 4px solid #eab308;
+            background: #fffbeb;
+            padding: 1rem;
+        }
+
+        .legacy-card h3 {
+            color: #854d0e;
+            border-left: none;
+            padding-left: 0;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .legacy-card p {
+            color: #713f12;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .legacy-item {
+            background: #ffffff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            border: 1px solid #fef08a;
+        }
+
+        /* Tables - Compact Corporate Style */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            background: #f8fafc;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .comparison-table td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 0.85rem;
+        }
+
+        .bad {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .good {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        /* Roadmap Formatting */
+        .observation {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .guideline {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+            background: #f8fafc;
+            border-left: 2px solid var(--primary);
+        }
+
+        /* Buttons */
+        .btn.premium {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        /* PDF Export Overrides */
+        .exporting-pdf {
+            background-color: #ffffff !important;
+        }
+
+        .exporting-pdf .app-container {
+            background-color: #ffffff !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+
+        .exporting-pdf .chevron-nav,
+        .exporting-pdf .actions,
+        .exporting-pdf .status-badge {
+            display: none !important;
+        }
+
+        .exporting-pdf .view {
+            display: block !important;
+            margin-bottom: 30px !important;
+            page-break-after: always !important;
+        }
+
+        .exporting-pdf .card {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+            break-inside: avoid;
+        }
+
+        .exporting-pdf h1 {
+            font-size: 20pt !important;
+        }
+
+        .exporting-pdf h2 {
+            font-size: 16pt !important;
+        }
+
+        .exporting-pdf canvas {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Agentic Flow Extensions */
+        .hidden {
+            display: none !important;
+        }
+
+        .agent-card {
+            background: var(--agent-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary);
+            margin-top: 1rem;
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .agent-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .agent-title h3 {
+            margin-bottom: 0.25rem;
+            border: none;
+            padding: 0 !important;
+        }
+
+        .agent-title p {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .log-container {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            min-height: 150px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            border: 1px solid #334155;
+            text-align: left;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeInLog 0.3s forwards;
+            white-space: pre-wrap;
+        }
+
+        .log-entry.system {
+            color: #94a3b8;
+        }
+
+        .log-entry.success {
+            color: #4ade80;
+        }
+
+        .log-entry.warning {
+            color: #fbbf24;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInLog {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">WinfoTest <span>Discovery Agent</span></div>
+            <div class="status-badge">Live Analysis</div>
+        </header>
+
+        <nav class="chevron-nav">
+            <div class="step active" data-step="discovery">
+                <span class="step-num">01</span>
+                <span class="step-name">Discovery</span>
+            </div>
+            <div class="step" data-step="analysis">
+                <span class="step-num">02</span>
+                <span class="step-name">Analysis</span>
+            </div>
+            <div class="step" data-step="sharepoint">
+                <span class="step-num">03</span>
+                <span class="step-name">SharePoint</span>
+            </div>
+            <div class="step" data-step="recommendation">
+                <span class="step-num">04</span>
+                <span class="step-name">Recommendation</span>
+            </div>
+            <div class="step" data-step="roadmap">
+                <span class="step-num">05</span>
+                <span class="step-name">Roadmap</span>
+            </div>
+        </nav>
+
+        <main id="content-area">
+            <!-- Discovery View -->
+            <div id="discovery-view" class="view active">
+                <div class="hero">
+                    <h1>System Discovery</h1>
+                    <p>Analyzing legacy Oracle 18c Express Edition environment...</p>
+                    <div class="actions" style="margin-top: 1.5rem; justify-content: flex-start;">
+                        <button id="run-analysis-btn" class="btn premium">Run Diagnostic Analysis</button>
+                    </div>
+                </div>
+
+                <!-- Agentic Processing Overlay -->
+                <div id="agent-overlay" class="view">
+                    <div class="card agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">🤖</div>
+                            <div class="agent-title">
+                                <h3>Discovery Agent Active</h3>
+                                <p id="agent-status">Initializing deep scan...</p>
+                            </div>
+                        </div>
+                        <div id="agent-logs" class="log-container">
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="agent-progress" class="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="discovery-results" class="grid hidden">
+                    <div class="card">
+                        <h3>Source Environment</h3>
+                        <div class="stat-list">
+                            <div class="stat-item">
+                                <label>Database Version</label>
+                                <span>Oracle 18c XE</span>
+                            </div>
+                            <div class="stat-item">
+                                <label>OS Version</label>
+                                <span>Ubuntu 18.04</span>
+                            </div>
+                            <div class="stat-item">
+                                <label>Java Runtime</label>
+                                <span>OpenJDK 8</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Schema Overview</h3>
+                        <div class="chart-container">
+                            <canvas id="schemaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis View -->
+            <div id="analysis-view" class="view">
+                <h2>Depth Analysis & Schema Breakdown</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Data Type Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Schema Statistics</h3>
+                        <div id="detailed-stats" class="stat-list">
+                        </div>
+                    </div>
+                </div>
+                <div id="legacy-alerts" class="alerts-container">
+                </div>
+                <h2>21c Feature Alignment</h2>
+                <div id="recommendations-container" class="grid">
+                </div>
+            </div>
+
+            <!-- SharePoint View -->
+            <div id="sharepoint-view" class="view">
+                <h2>SharePoint Diagnostic Assessment</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Site Type Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="spTypeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>SharePoint File Samples (Top 6)</h3>
+                        <div id="sp-file-list" class="stat-list">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div class="card">
+                        <h3>File Category Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="spFileChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>SharePoint Statistics</h3>
+                        <div id="sp-stats" class="stat-list">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendation View -->
+            <div id="recommendation-view" class="view">
+                <h2>Upgrade Recommendation Matrix</h2>
+                <div class="card">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Current Environment</th>
+                                <th>Recommended Target</th>
+                                <th>Primary Rationale (Why?)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid strategy-grid">
+                    <div class="card">
+                        <h3>Strategy: How?</h3>
+                        <p id="strategy-how"></p>
+                    </div>
+                    <div class="card">
+                        <h3>Timeline: When?</h3>
+                        <p id="strategy-when"></p>
+                    </div>
+                </div>
+
+                <h2>Key Benefits</h2>
+                <div class="grid">
+                    <div class="card benefit">
+                        <div class="icon">✨</div>
+                        <h3>Performance</h3>
+                        <p>Native JSON type offers up to 2x faster query processing compared to LOB-based storage.</p>
+                    </div>
+                    <div class="card benefit">
+                        <div class="icon">🛡️</div>
+                        <h3>Security</h3>
+                        <p>Blockchain tables ensure data immutability for critical audit logs.</p>
+                    </div>
+                    <div class="card benefit">
+                        <div class="icon">🚀</div>
+                        <h3>Availability</h3>
+                        <p>Leverage "Near Zero Downtime" upgrade paths identified in 21c documentation.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roadmap View -->
+            <div id="roadmap-view" class="view">
+                <h2>Detailed Implementation Roadmap</h2>
+                <div class="card">
+                    <table class="comparison-table roadmap-table">
+                        <thead>
+                            <tr>
+                                <th>Application / Layer</th>
+                                <th>Current Version</th>
+                                <th>Target Version</th>
+                                <th>Guidelines & Observations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roadmap-body">
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
