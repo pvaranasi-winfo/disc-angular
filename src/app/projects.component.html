@@ -1,21 +1,31 @@
-<div class="min-h-screen w-full flex flex-col items-center justify-center bg-gray-50">
-  <div class="w-full  p-8 bg-white rounded-lg shadow-lg border border-gray-200">
-  <div class="flex flex-col h-[80vh]">
-    <div class="flex items-center justify-between mb-6 flex-shrink-0">
-      <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
-      <button class="env-button bg-blue-600 text-white font-semibold hover:bg-blue-700" (click)="openCreateProjectModal()"><i class="pi pi-plus"></i></button>
+<div class=" w-full flex flex-col items-center justify-start bg-gray-50">
+  <div class="w-full bg-white rounded-lg shadow-lg border border-gray-200">
+  <div class="flex flex-col h-[96vh]">
+    <div class="flex items-center justify-between px-8 py-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b-4 border-indigo-400 flex-shrink-0 shadow-md sticky top-0 z-10">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+          <i class="pi pi-folder-open text-white text-2xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Projects</h1>
+      </div>
+      <button class="env-button bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200" (click)="openCreateProjectModal()"><i class="pi pi-plus"></i></button>
     </div>
     <div *ngIf="projects.length === 0" class="text-gray-400 text-center py-8 flex-1">No projects found.</div>
-    <div class="flex-1 overflow-y-auto">
-      <ul class="w-full grid grid-cols-1 gap-6">
-        <li *ngFor="let project of projects" class="flex items-center justify-between w-full h-32 bg-white rounded-2xl shadow-2xl px-8 py-6 border-2 border-gray-100 hover:shadow-blue-100 hover:border-blue-200 transition-all">
-          <div>
-            <span class="text-lg text-gray-900 font-medium">{{ project.projectName }}</span>
-            <span class="text-xs text-gray-500 ml-2">({{ project.createdDate | date:'dd/MM/yyyy, HH:mm' }})</span>
+    <div class="flex-1 overflow-y-auto p-6">
+      <ul class="w-full divide-y divide-gray-200 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <li *ngFor="let project of projects" class="flex items-center justify-between w-full px-6 py-4 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-200 group">
+          <div class="flex items-center gap-4 flex-1">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center group-hover:from-indigo-200 group-hover:to-purple-200 transition-all">
+              <i class="pi pi-folder text-indigo-600 text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base text-gray-900 font-semibold">{{ project.projectName }}</span>
+              <span class="text-xs text-gray-500">Created: {{ project.createdDate | date:'dd/MM/yyyy, HH:mm' }}</span>
+            </div>
           </div>
           <div class="flex gap-2">
-            <button class="env-button bg-green-600 text-white hover:bg-green-700" (click)="viewDashboard(project)"><i class="pi pi-chart-line"></i></button>
-            <button class="env-button bg-red-600 text-white hover:bg-red-700" (click)="confirmDeleteProject(project)"><i class="pi pi-trash"></i></button>
+            <button class="env-button bg-green-600 text-white hover:bg-green-700" (click)="viewDashboard(project)" title="View Dashboard"><i class="pi pi-chart-line"></i></button>
+            <button class="env-button bg-red-600 text-white hover:bg-red-700" (click)="confirmDeleteProject(project)" title="Delete Project"><i class="pi pi-trash"></i></button>
           </div>
         </li>
       </ul>

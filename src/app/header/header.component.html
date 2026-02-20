@@ -1,9 +1,14 @@
-<div class="flex items-center justify-between mb-8 px-8 pt-6">
-  <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">WinfoTest Discovery Dashboard</h1>
-    <p class="text-sm text-gray-500">
-      Last Scan: {{ data?.scanTimestamp | date:'dd/MM/yyyy, HH:mm:ss' }} | Run ID: {{ data?.runId }}
-    </p>
+<div class="flex items-center justify-between px-8 py-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b-4 border-indigo-400 shadow-md sticky top-0 z-10">
+  <div class="flex items-center gap-4">
+    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+      <i class="pi pi-chart-bar text-white text-3xl"></i>
+    </div>
+    <div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">WinfoTest Discovery Dashboard</h1>
+      <p class="text-sm text-gray-600 font-medium">
+        Last Scan: {{ data?.scanTimestamp | date:'dd/MM/yyyy, HH:mm:ss' }} | Run ID: {{ data?.runId }}
+      </p>
+    </div>
   </div>
 
   <div class="flex items-center gap-3">
@@ -13,7 +18,7 @@
     <button class="env-button {{ selectedEnvironment === 'Prod' ? 'active' : '' }}" (click)="setEnvironment('Prod')">Prod</button>
 
     <!-- Configure MCP Button -->
-    <button class="env-button bg-cyan-600 text-white hover:bg-cyan-700" (click)="showConfigureMcpPanel = true"><i class="pi pi-wrench"></i></button>
+    <button class="env-button bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200" (click)="showConfigureMcpPanel = true"><i class="pi pi-wrench"></i></button>
 
 <!-- MCP Config Slide-in Panel -->
 <div *ngIf="showConfigureMcpPanel" class="fixed inset-0 z-50 flex items-end justify-end">

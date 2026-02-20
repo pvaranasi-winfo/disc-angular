@@ -12,11 +12,12 @@
 }
 
 @if (dashboardData() && !loading() && !error()) {
-<div class="dashboard-container">
+<div class="dashboard-container h-screen flex flex-col overflow-hidden">
   <!-- Header Section -->
   <app-header [data]="dashboardData()"></app-header>
 
-  <div class="max-w-screen-2xl mx-auto px-8">
+  <div class="flex-1 overflow-y-auto">
+  <div class="max-w-screen-2xl mx-auto px-8 py-6">
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -97,6 +98,7 @@
       </div>
 
     </div>
+  </div>
   </div>
 </div>
 }
