@@ -15,7 +15,6 @@ import {
 import { AgentLog, AgentProgress } from '../../models/agent-log.model';
 import { AnalysisResponse } from '../../models/analysis-response.model';
 import { AnalysisStateService } from './analysis-state.service';
-import { MockDataService } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +22,6 @@ import { MockDataService } from './mock-data.service';
 export class AgentService {
   private readonly http = inject(HttpClient);
   private readonly stateService = inject(AnalysisStateService);
-  private readonly mockDataService = inject(MockDataService);
 
   private readonly logSubject = new Subject<AgentLog>();
   private readonly progressSubject = new Subject<AgentProgress>();
@@ -53,12 +51,12 @@ export class AgentService {
   runAnalysis(apiUrl: string = 'http://127.0.0.1:5000/api/analyze'): Observable<AnalysisResponse> {
     this.stateService.setLoading(true);
 
-    // For development, try API first, fallback to mock data on error
+    // Call the real API
     const apiCall$ = this.http.get<AnalysisResponse>(apiUrl).pipe(
       catchError((error) => {
-        console.warn('API call failed, using mock data for development:', error);
-        // Use mock data as fallback
-        return this.mockDataService.getMockAnalysisData();
+        console.error('API Error:', error);
+        this.stateService.setError(error.message || 'Failed to fetch analysis data');
+        return throwError(() => error);
       })
     );
 
