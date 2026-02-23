@@ -1,7 +1,16 @@
 <div class="mb-6 border border-gray-200 rounded-lg bg-white">
-  <div class="flex items-center gap-2 mb-4 bg-gray-100 w-full p-2">
-    <span class="text-gray-500">📄</span>
-    <h2 class="text-lg font-semibold text-gray-900">Relevant Documentation</h2>
+  <div class="flex items-center justify-between gap-2 bg-gray-100 w-full p-2">
+    <div class="flex items-center gap-2">
+      <span class="text-gray-500">📄</span>
+      <h2 class="text-lg font-semibold text-gray-900">Relevant Documentation</h2>
+    </div>
+    <button 
+      *ngIf="docs.length > 0"
+      (click)="viewAllDocs()" 
+      class="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all"
+    >
+      View All ({{ docs.length }})
+    </button>
   </div>
 
   <div class="p-2 space-y-3">

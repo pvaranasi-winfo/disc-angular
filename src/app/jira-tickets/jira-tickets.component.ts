@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { JiraTicket } from '../dashboard.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-jira-tickets',
@@ -10,6 +11,8 @@ import { CommonModule } from '@angular/common';
 })
 export class JiraTicketsComponent {
   @Input() tickets: JiraTicket[] = [];
+
+  constructor(private router: Router) {}
 
   getPriorityColor(priority: string | undefined | null): string {
     if (!priority) return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
@@ -59,5 +62,9 @@ export class JiraTicketsComponent {
   truncateDescription(description: string, maxLength: number = 150): string {
     if (description.length <= maxLength) return description;
     return description.substring(0, maxLength) + '...';
+  }
+
+  viewAllTickets() {
+    this.router.navigate(['/jira-tickets-all'], { state: { tickets: this.tickets } });
   }
 }

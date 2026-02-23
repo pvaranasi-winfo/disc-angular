@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { GithubIssue } from '../dashboard.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-github-issues',
@@ -10,6 +11,8 @@ import { CommonModule } from '@angular/common';
 })
 export class GithubIssuesComponent {
   @Input() issues: GithubIssue[] = [];
+
+  constructor(private router: Router) {}
 
   getTagColor(tag: string): string {
     if(!tag) return 'bg-slate-500/20 text-slate-400'; // default for unknown tags
@@ -49,5 +52,9 @@ export class GithubIssuesComponent {
   truncateDescription(description: string, maxLength: number = 150): string {
     if (description.length <= maxLength) return description;
     return description.substring(0, maxLength) + '...';
+  }
+
+  viewAllIssues() {
+    this.router.navigate(['/github-issues-all'], { state: { issues: this.issues } });
   }
 }

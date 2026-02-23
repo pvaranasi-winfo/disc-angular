@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { Documentation } from '../dashboard.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-documentation',
@@ -10,6 +11,8 @@ import { CommonModule } from '@angular/common';
 })
 export class DocumentationComponent {
   @Input() docs: Documentation[] = [];
+
+  constructor(private router: Router) {}
 
   getFolderIcon(folderName: string): string {
     if(!folderName) return '📁'; // default icon for unknown folders
@@ -73,5 +76,9 @@ export class DocumentationComponent {
     } catch {
       return false;
     }
+  }
+
+  viewAllDocs() {
+    this.router.navigate(['/documentation-all'], { state: { docs: this.docs } });
   }
 }

@@ -14,11 +14,25 @@ import { Router } from '@angular/router';
 })
 export class ProjectsComponent {
   projects: any[] = [];
+  filteredProjects: any[] = [];
+  paginatedProjects: any[] = [];
   showCreateModal = false;
   showDeleteModal = false;
   newProjectName = '';
   isCreating = false;
   projectToDelete: any = null;
+  
+  // Pagination properties
+  currentPage = 1;
+  pageSize = 5;
+  totalPages = 1;
+  pageSizeOptions = [5, 10, 20, 50];
+  
+  // Filter properties
+  searchTerm = '';
+  
+  // Make Math available in template
+  Math = Math;
 
   constructor(private http: HttpClient, private router: Router) {
     this.loadProjects();
@@ -38,6 +52,7 @@ export class ProjectsComponent {
         { id: 'proj-9', projectName: 'Mobile App Redesign', createdDate: new Date('2026-01-30T10:30:00Z') },
         { id: 'proj-10', projectName: 'AI Research', createdDate: new Date('2026-02-17T15:00:00Z') }
       ];
+    this.applyFilter();
     }
 
   openCreateProjectModal() {
@@ -59,6 +74,7 @@ export class ProjectsComponent {
       this.projects.push({ ...payload, id: 'proj-' + Math.floor(Math.random() * 10000) });
       this.showCreateModal = false;
       this.isCreating = false;
+      this.applyFilter();
     }, 500);
   }
 
@@ -80,6 +96,55 @@ export class ProjectsComponent {
     setTimeout(() => {
       this.projects = this.projects.filter(p => p.id !== this.projectToDelete.id);
       this.closeDeleteModal();
+      this.applyFilter();
     }, 500);
+  }
+
+  // Filter and Pagination Methods
+  applyFilter() {
+    const term = this.searchTerm.toLowerCase().trim();
+    this.filteredProjects = this.projects.filter(project =>
+      project.projectName.toLowerCase().includes(term)
+    );
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination() {
+    this.totalPages = Math.ceil(this.filteredProjects.length / this.pageSize);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedProjects = this.filteredProjects.slice(startIndex, endIndex);
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage + 1 < maxPagesToShow) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

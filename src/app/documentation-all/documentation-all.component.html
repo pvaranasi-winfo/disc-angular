@@ -1,0 +1,132 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="mb-6 bg-white rounded-xl shadow-lg border-2 border-gray-100">
+      <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-t-xl border-b border-gray-200">
+        <div class="flex items-center gap-3">
+          <button (click)="goBack()" class="text-gray-600 hover:text-gray-900 transition-colors">
+            <i class="pi pi-arrow-left text-xl"></i>
+          </button>
+          <span class="text-2xl">📄</span>
+          <h1 class="text-2xl font-bold text-gray-900">All Documentation</h1>
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">{{ docs.length }} Total</span>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="px-6 py-4 bg-gray-50">
+        <div class="flex items-center gap-4">
+          <div class="flex-1 relative">
+            <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="applyFilter()"
+              placeholder="Search by title, description, or folder..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <select
+            [(ngModel)]="selectedFolder"
+            (ngModelChange)="applyFilter()"
+            class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Folders</option>
+            <option *ngFor="let folder of getUniqueFolders()" [value]="folder">{{ folder }}</option>
+          </select>
+          <select
+            [(ngModel)]="pageSize"
+            (ngModelChange)="onPageSizeChange()"
+            class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} per page</option>
+          </select>
+        </div>
+        <div class="mt-2 text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredDocs.length) }} of {{ filteredDocs.length }} documents
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+    </div>
+
+    <!-- Documentation List -->
+    <div *ngIf="!loading" class="space-y-4">
+      <div *ngIf="filteredDocs.length === 0" class="bg-white rounded-xl shadow-lg border-2 border-gray-100 p-12 text-center">
+        <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500 text-lg">No documentation matches your filters.</p>
+      </div>
+
+      <div *ngFor="let doc of paginatedDocs" class="bg-white rounded-xl shadow-lg border-2 border-gray-100 px-6 py-5 hover:shadow-xl hover:border-indigo-200 transition-all">
+        <a [href]="doc.url" target="_blank" rel="noopener noreferrer" class="text-xl font-semibold text-indigo-600 hover:text-indigo-800 hover:underline block mb-3">
+          {{ doc.title }}
+        </a>
+        <p *ngIf="doc.Description" class="text-sm text-gray-600 mb-4">{{ doc.Description }}</p>
+        <div class="flex items-center justify-between">
+          <span class="flex items-center text-sm {{ getFolderColor(doc.Foldername) }} px-3 py-1.5 rounded-full font-medium">
+            <span class="mr-2">
+              <span [ngClass]="getFolderIcon(doc.Foldername)" class="pi"></span>
+            </span>
+            {{ doc.Foldername || 'General' }}
+          </span>
+          <a [href]="doc.url" target="_blank" rel="noopener noreferrer" class="text-sm text-gray-500 hover:text-indigo-600 flex items-center gap-2 transition-colors">
+            <i class="pi pi-external-link"></i>
+            Open Link
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && filteredDocs.length > 0" class="mt-6 bg-white rounded-xl shadow-lg border-2 border-gray-100 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="pi pi-angle-left mr-1"></i> Previous
+        </button>
+        
+        <div class="flex items-center gap-1">
+          <button
+            *ngIf="getPageNumbers()[0] > 1"
+            (click)="goToPage(1)"
+            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            1
+          </button>
+          <span *ngIf="getPageNumbers()[0] > 2" class="px-2 text-gray-500">...</span>
+          
+          <button
+            *ngFor="let page of getPageNumbers()"
+            (click)="goToPage(page)"
+            [class]="page === currentPage ? 'px-3 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-lg' : 'px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50'"
+          >
+            {{ page }}
+          </button>
+          
+          <span *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1" class="px-2 text-gray-500">...</span>
+          <button
+            *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages"
+            (click)="goToPage(totalPages)"
+            class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            {{ totalPages }}
+          </button>
+        </div>
+        
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next <i class="pi pi-angle-right ml-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

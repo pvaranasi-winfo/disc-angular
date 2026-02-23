@@ -1,7 +1,16 @@
 <div class="mb-3 border border-gray-200 rounded-lg bg-white">
-  <div class="flex items-center gap-1 mb-4 bg-gray-100 w-full p-3">
-    <span class="text-gray-500">🐙</span>
-    <h2 class="text-lg font-semibold text-gray-900">GitHub Issues</h2>
+  <div class="flex items-center justify-between gap-1 bg-gray-100 w-full p-3">
+    <div class="flex items-center gap-1">
+      <span class="text-gray-500">🐙</span>
+      <h2 class="text-lg font-semibold text-gray-900">GitHub Issues</h2>
+    </div>
+    <button 
+      *ngIf="issues.length > 0"
+      (click)="viewAllIssues()" 
+      class="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all"
+    >
+      View All ({{ issues.length }})
+    </button>
   </div>
 
   <div class="p-3">
@@ -11,7 +20,7 @@
     </div>
     } @else {
     @for (issue of issues; track issue.id) {
-    <div class="dashboard-card p-6 mb-4 rounded-2xl shadow-2xl border-2 border-gray-100 hover:shadow-blue-100 hover:border-blue-200 transition-all">
+    <div class="dashboard-card p-6 rounded-2xl shadow-2xl border-2 border-gray-100 hover:shadow-blue-100 hover:border-blue-200 transition-all">
       <div class="flex items-start justify-between mb-2">
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
