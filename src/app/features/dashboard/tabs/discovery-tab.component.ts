@@ -6,9 +6,11 @@ import {
   inject,
   effect,
   OnDestroy,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AgentOverlayComponent } from '../../../shared/components/agent-overlay/agent-overlay.component';
+import { ConfirmationModalComponent } from '../../../shared/components/confirmation-modal/confirmation-modal.component';
 import {
   StatCardComponent,
   StatItem,
@@ -19,7 +21,7 @@ declare const Chart: any;
 
 @Component({
   selector: 'app-discovery-tab',
-  imports: [CommonModule, AgentOverlayComponent, StatCardComponent],
+  imports: [CommonModule, AgentOverlayComponent, StatCardComponent, ConfirmationModalComponent],
   template: `
     <div class="discovery-view">
       <div class="hero">
@@ -27,14 +29,24 @@ declare const Chart: any;
         <p>Analyzing legacy Oracle 18c Express Edition environment...</p>
         <div class="actions">
           <button
+            id="gather-data-btn"
+            class="btn secondary"
+            [disabled]="isGatheringData() || isAnalyzing()"
+            (click)="gatherData()"
+          >
+            @if (isGatheringData()) {
+              Gathering Data...
+            } @else {
+              Gather Info to MCP
+            }
+          </button>
+          <button
             id="run-analysis-btn"
             class="btn premium"
-            [disabled]="isAnalyzing() || analysisCompleted()"
+            [disabled]="isAnalyzing() || isGatheringData()"
             (click)="runAnalysis()"
           >
-            @if (analysisCompleted()) {
-              Agent is Running
-            } @else if (isAnalyzing()) {
+            @if (isAnalyzing()) {
               Agent Working...
             } @else {
               Run Diagnostic Analysis
@@ -44,6 +56,22 @@ declare const Chart: any;
       </div>
 
       <app-agent-overlay />
+
+      <app-confirmation-modal
+        [title]="'Gather Information to MCP'"
+        [message]="'Are you sure you want to gather information to MCP? This will collect OS, GitHub, Oracle, and SharePoint data.'"
+        [isVisible]="showGatherDataModal()"
+        (confirmed)="confirmGatherData()"
+        (cancelled)="cancelGatherData()"
+      />
+
+      <app-confirmation-modal
+        [title]="'Run Diagnostic Analysis'"
+        [message]="'Are you sure you want to run the diagnostic analysis? This will discover and analyze your Oracle environment.'"
+        [isVisible]="showRunAnalysisModal()"
+        (confirmed)="confirmRunAnalysis()"
+        (cancelled)="cancelRunAnalysis()"
+      />
 
       @if (resultsVisible()) {
         <div class="grid">
@@ -84,6 +112,7 @@ declare const Chart: any;
 
       .actions {
         display: flex;
+        gap: 1rem;
         justify-content: flex-start;
         margin-top: 1.5rem;
       }
@@ -109,6 +138,28 @@ declare const Chart: any;
         cursor: not-allowed;
       }
 
+      .btn.secondary {
+        background: #f8fafc;
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 0.75rem 2rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn.secondary:hover:not(:disabled) {
+        background: #e2e8f0;
+        border-color: var(--primary);
+      }
+
+      .btn.secondary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -126,15 +177,21 @@ declare const Chart: any;
 })
 export class DiscoveryTabComponent implements OnDestroy {
   private readonly stateService = inject(AnalysisStateService);
+  private readonly platformId = inject(PLATFORM_ID);
   private schemaChartInstance: any = null;
 
   readonly analysisStarted = output<void>();
+  readonly dataGatheringStarted = output<void>();
 
   readonly agentOverlay = viewChild(AgentOverlayComponent);
 
   readonly isAnalyzing = signal<boolean>(false);
   readonly resultsVisible = signal<boolean>(false);
   readonly analysisCompleted = signal<boolean>(false);
+  readonly isGatheringData = signal<boolean>(false);
+  readonly dataGatheringCompleted = signal<boolean>(false);
+  readonly showGatherDataModal = signal<boolean>(false);
+  readonly showRunAnalysisModal = signal<boolean>(false);
 
   readonly sourceEnvironmentStats = signal<StatItem[]>([
     { label: 'Database Version', value: 'Oracle 18c XE' },
@@ -165,18 +222,57 @@ export class DiscoveryTabComponent implements OnDestroy {
     }
   }
 
-  runAnalysis(): void {
-    // Don't run if already completed
-    if (this.analysisCompleted()) {
+  gatherData(): void {
+    if (this.isGatheringData()) {
       return;
     }
 
+    this.showGatherDataModal.set(true);
+  }
+
+  confirmGatherData(): void {
+    this.showGatherDataModal.set(false);
+    this.isGatheringData.set(true);
+    const overlay = this.agentOverlay();
+    if (overlay) {
+      overlay.show();
+    }
+    this.dataGatheringStarted.emit();
+  }
+
+  cancelGatherData(): void {
+    this.showGatherDataModal.set(false);
+  }
+
+  finishDataGathering(): void {
+    this.isGatheringData.set(false);
+    this.dataGatheringCompleted.set(true);
+    const overlay = this.agentOverlay();
+    if (overlay) {
+      overlay.hide();
+    }
+  }
+
+  runAnalysis(): void {
+    if (this.isAnalyzing()) {
+      return;
+    }
+
+    this.showRunAnalysisModal.set(true);
+  }
+
+  confirmRunAnalysis(): void {
+    this.showRunAnalysisModal.set(false);
     this.isAnalyzing.set(true);
     const overlay = this.agentOverlay();
     if (overlay) {
       overlay.show();
     }
     this.analysisStarted.emit();
+  }
+
+  cancelRunAnalysis(): void {
+    this.showRunAnalysisModal.set(false);
   }
 
   showResults(): void {
@@ -204,6 +300,11 @@ export class DiscoveryTabComponent implements OnDestroy {
   }
 
   private renderSchemaChart(stats: any): void {
+    // Only run in browser environment (not during SSR)
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const canvas = document.getElementById('schemaChart') as HTMLCanvasElement;
     if (!canvas) return;
 

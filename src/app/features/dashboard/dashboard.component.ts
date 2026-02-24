@@ -34,7 +34,35 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
     <div class="app-container">
       <header>
         <div class="logo">WinfoTest <span>Discovery Agent</span></div>
-        <div class="status-badge">Live Analysis</div>
+        <div class="header-actions">
+          <button 
+            class="refresh-btn" 
+            (click)="handleRefresh()" 
+            [disabled]="isRefreshing()"
+            title="Refresh Analysis Data"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+              [class.spinning]="isRefreshing()"
+            >
+              <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+            </svg>
+            @if (isRefreshing()) {
+              <span>Refreshing...</span>
+            } @else {
+              <span>Refresh</span>
+            }
+          </button>
+          <div class="status-badge">Live Analysis</div>
+        </div>
       </header>
 
       <app-tab-navigation
@@ -45,7 +73,10 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
 
       <main id="content-area">
         @if (activeTabId() === 'discovery') {
-          <app-discovery-tab (analysisStarted)="handleAnalysis()" />
+          <app-discovery-tab 
+            (analysisStarted)="handleAnalysis()" 
+            (dataGatheringStarted)="handleDataGathering()" 
+          />
         }
         @if (activeTabId() === 'analysis') {
           <app-analysis-tab />
@@ -92,6 +123,55 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
         color: var(--primary);
       }
 
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .refresh-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .refresh-btn:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .refresh-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .refresh-btn svg {
+        transition: transform 0.3s ease;
+      }
+
+      .refresh-btn svg.spinning {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       .status-badge {
         background: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -112,6 +192,7 @@ export class DashboardComponent implements OnInit {
 
   readonly activeTabId = signal<string>('discovery');
   readonly hasSharePointData = this.stateService.hasSharePointData;
+  readonly isRefreshing = signal<boolean>(false);
 
   readonly tabs = computed<Tab[]>(() => {
     const hasData = this.stateService.data() !== null;
@@ -127,6 +208,9 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Fetch analysis data at startup
+    this.handleRefresh();
+
     // Subscribe to agent completion
     this.agentService.completion$.subscribe((data) => {
       this.stateService.setAnalysisData(data);
@@ -150,6 +234,26 @@ export class DashboardComponent implements OnInit {
     this.activeTabId.set(tabId);
   }
 
+  handleDataGathering(): void {
+    // Execute data gathering to MCP
+    this.agentService.gatherDataToMCP().subscribe({
+      next: (response) => {
+        // //console.log('Data gathering completed:', response);
+        const discovery = this.discoveryTab();
+        if (discovery) {
+          discovery.finishDataGathering();
+        }
+      },
+      error: (error) => {
+        console.error('Data gathering failed:', error);
+        const discovery = this.discoveryTab();
+        if (discovery) {
+          discovery.hideOverlay();
+        }
+      },
+    });
+  }
+
   handleAnalysis(): void {
     // Execute the full agent analysis
     this.agentService.runAnalysis().subscribe({
@@ -162,6 +266,29 @@ export class DashboardComponent implements OnInit {
         if (discovery) {
           discovery.hideOverlay();
         }
+      },
+    });
+  }
+
+  handleRefresh(): void {
+    // Fetch analysis data without logs or discover endpoint
+    this.isRefreshing.set(true);
+    
+    this.agentService.fetchAnalysisData().subscribe({
+      next: (data) => {
+        //console.log('Analysis data refreshed:', data);
+        this.stateService.setAnalysisData(data[0] || null);
+        this.isRefreshing.set(false);
+        
+        // Update discovery tab if it exists and analysis is completed
+        const discovery = this.discoveryTab();
+        if (discovery && data && data.length > 0) {
+          discovery.showResults();
+        }
+      },
+      error: (error) => {
+        console.error('Refresh failed:', error);
+        this.isRefreshing.set(false);
       },
     });
   }
