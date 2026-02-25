@@ -1,5 +1,5 @@
 {
-  "name": "discovery-ui",
+  "name": "disc-wta",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:discovery-ui": "node dist/discovery-ui/server/server.mjs"
+    "serve:ssr:disc-wta": "node dist/disc-wta/server/server.mjs"
   },
   "prettier": {
     "printWidth": 100,
@@ -22,36 +22,33 @@
     ]
   },
   "private": true,
+  "packageManager": "npm@10.8.2",
   "dependencies": {
-    "@angular/common": "^20.3.0",
-    "@angular/compiler": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "@angular/forms": "^20.3.0",
-    "@angular/platform-browser": "^20.3.0",
-    "@angular/platform-server": "^20.3.0",
-    "@angular/router": "^20.3.0",
-    "@angular/ssr": "^20.3.4",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/platform-server": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@angular/ssr": "^21.0.4",
+    "autoprefixer": "^10.4.24",
     "express": "^5.1.0",
+    "postcss": "^8.5.6",
     "primeicons": "^7.0.0",
+    "primeng": "^21.1.1",
     "rxjs": "~7.8.0",
+    "tailwindcss": "^3.3.3",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.3.4",
-    "@angular/cli": "^20.3.4",
-    "@angular/compiler-cli": "^20.3.0",
+    "@angular/build": "^21.0.4",
+    "@angular/cli": "^21.0.4",
+    "@angular/compiler-cli": "^21.0.0",
     "@types/express": "^5.0.1",
-    "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
-    "autoprefixer": "^10.4.14",
-    "jasmine-core": "~5.9.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.3",
-    "typescript": "~5.9.2"
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
   }
 }
