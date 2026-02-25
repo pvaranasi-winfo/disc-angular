@@ -5,6 +5,7 @@ export interface AnalysisResponse {
   sharepoint: SharePointData | null;
   stats: SchemaStats;
   strategy: Strategy;
+  compatibility?: CompatibilityData[];
 }
 
 export interface ComparisonItem {
@@ -57,4 +58,32 @@ export interface SchemaStats {
 export interface Strategy {
   how: string;
   when: string;
+}
+
+export interface CompatibilityData {
+  id: string;
+  base_component: string;
+  base_target_version: string;
+  architectural_rationale: string[] | null;
+  matrix: CompatibilityMatrixItem[];
+  detailed_reasoning: DetailedReasoning[] | null;
+}
+
+export interface CompatibilityMatrixItem {
+  component: string;
+  current_version: string | null;
+  proposed_target: string;
+  certified_stack_1_lts: string;
+  certified_stack_2_modern: string;
+  is_compatible: boolean;
+  status_message: string;
+  brief_rationale: string | null;
+  action_required: string | null;
+}
+
+export interface DetailedReasoning {
+  component_name: string;
+  transition_stack: string;
+  rationale: string;
+  deprecated_objects: string[];
 }

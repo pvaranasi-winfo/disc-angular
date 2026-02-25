@@ -55,6 +55,143 @@ export class AgentService {
     { msg: '> DISCOVERY ENDPOINT ACTIVATED', type: 'success', delay: 1500 },
   ];
 
+  private readonly mockCompatibilityData = [
+    {
+      id: '8a39517d-7a3e-40c4-b3f6-fddb59bcae39',
+      base_component: 'Oracle APEX',
+      base_target_version: '24.2',
+      architectural_rationale: null,
+      matrix: [
+        {
+          certified_stack_2_modern: 'Oracle Database 23ai',
+          proposed_target: '23ai',
+          action_required: null,
+          status_message: 'Compatible (Certified)',
+          component: 'Oracle Database',
+          is_compatible: true,
+          certified_stack_1_lts: 'Oracle Database 19c (19.24+)',
+          brief_rationale: null,
+          current_version: '18c XE',
+        },
+        {
+          certified_stack_2_modern: 'ORDS 25.x (Latest)',
+          proposed_target: '25.4',
+          action_required: 'Verify Release Availability',
+          status_message: 'Compatible (Projected Future Release)',
+          component: 'ORDS',
+          is_compatible: true,
+          certified_stack_1_lts: 'ORDS 24.4 LTS',
+          brief_rationale: null,
+          current_version: '22c',
+        },
+        {
+          certified_stack_2_modern: 'Java 21 LTS',
+          proposed_target: '21',
+          action_required: null,
+          status_message: 'Compatible',
+          component: 'Java Runtime',
+          is_compatible: true,
+          certified_stack_1_lts: 'Java 17 LTS',
+          brief_rationale: null,
+          current_version: 'Legacy (8/11)',
+        },
+        {
+          certified_stack_2_modern: 'ORDS Standalone (Jetty)',
+          proposed_target: 'Tomcat 9.0.Latest',
+          action_required: 'Consider Standalone Mode',
+          status_message: 'Compatible',
+          component: 'Web Server (Tomcat)',
+          is_compatible: true,
+          certified_stack_1_lts: 'Tomcat 9.0.x',
+          brief_rationale: null,
+          current_version: 'Tomcat Legacy',
+        },
+        {
+          certified_stack_2_modern: 'Oracle Linux 9',
+          proposed_target: 'Oracle Linux 9',
+          action_required: null,
+          status_message: 'Compatible',
+          component: 'Operating System (DB/App)',
+          is_compatible: true,
+          certified_stack_1_lts: 'Oracle Linux 8',
+          brief_rationale: null,
+          current_version: 'Oracle Linux 7.9',
+        },
+        {
+          certified_stack_2_modern: 'Ubuntu 24.04 LTS',
+          proposed_target: 'Ubuntu 24.04 LTS',
+          action_required: null,
+          status_message: 'Compatible',
+          component: 'Operating System (Selenium)',
+          is_compatible: true,
+          certified_stack_1_lts: 'Ubuntu 22.04 LTS',
+          brief_rationale: null,
+          current_version: 'Ubuntu 18.04 LTS',
+        },
+      ],
+      detailed_reasoning: [
+        {
+          transition_stack: 'Current (18c XE) -> Proposed (23ai) -> Certified (23ai)',
+          rationale:
+            "Oracle Database 23ai is the latest Long Term Release (LTS) and is fully certified with APEX 24.2. The transition from 18c XE to 23ai Enterprise/Free offers significant performance improvements and AI capabilities (Vector Search). Ensure 'COMPATIBLE' parameter is set to 23.0.0.",
+          deprecated_objects: [
+            'DBMS_JOB (Replaced by DBMS_SCHEDULER)',
+            'Oracle Multimedia (ORDImage)',
+            'Traditional Auditing (Replaced by Unified Auditing)',
+            'UTL_FILE (Stricter directory access)',
+          ],
+          component_name: 'Oracle Database',
+        },
+        {
+          transition_stack: 'Current (22c) -> Proposed (25.4) -> Certified (24.4 LTS / 25.x)',
+          rationale:
+            'ORDS 25.4 is a projected future release (likely Q4 2025/Q1 2026). Current stable is 24.4. APEX 24.2 requires ORDS 23.3+. Using the latest ORDS ensures support for Java 21 and HTTP/2. We recommend validating 25.4 upon release or using 24.4 LTS.',
+          deprecated_objects: [
+            'Apache FOP (PDF Printing) - External service recommended',
+            'XML-based configuration (Fully replaced by folder-based configuration)',
+            'Legacy URL syntax (if not already migrated)',
+          ],
+          component_name: 'ORDS',
+        },
+        {
+          transition_stack: 'Current (11/8) -> Proposed (21) -> Certified (21 LTS)',
+          rationale:
+            'Java 21 LTS is the recommended runtime for modern ORDS (24.2+) and offers Virtual Threads (Project Loom) for improved throughput. Java 17 LTS is also supported but 21 is preferred for long-term support alignment with the 2026 roadmap.',
+          deprecated_objects: [
+            'Security Manager (Deprecated for removal)',
+            'Legacy 32-bit support (Removed in modern builds)',
+          ],
+          component_name: 'Java Runtime',
+        },
+        {
+          transition_stack: 'Current (Tomcat 8/9) -> Proposed (Tomcat 9.0.Latest) -> Certified (Standalone / Tomcat 9)',
+          rationale:
+            "Tomcat 9.0.x is the standard 'javax' based container certified for ORDS. While Tomcat 10 (Jakarta EE) is available, ORDS Standalone (Embedded Jetty) is the preferred modern deployment for simplified management and HTTP/2 support.",
+          deprecated_objects: ['Legacy AJP Connector attributes', 'BioConnector (Removed in favor of NIO)'],
+          component_name: 'Web Server (Tomcat)',
+        },
+        {
+          transition_stack: 'Current (OL 7.9) -> Proposed (OL 9) -> Certified (OL 9)',
+          rationale:
+            'Oracle Linux 9 is the certified OS for Oracle Database 23ai and offers the latest kernel support for containerization (Podman). It aligns perfectly with the target stack.',
+          deprecated_objects: [
+            'Yum (Replaced by DNF)',
+            'Iptables (Replaced by Nftables/Firewalld)',
+            'Network Scripts (Replaced by NetworkManager)',
+          ],
+          component_name: 'Operating System (DB/App)',
+        },
+        {
+          transition_stack: 'Current (Ubuntu 18.04) -> Proposed (Ubuntu 24.04) -> Certified (Ubuntu 24.04)',
+          rationale:
+            'Ubuntu 24.04 LTS provides the necessary glibc versions for the latest Chrome/Gecko drivers and Selenium Grid 4.x. Ubuntu 18.04 is EOL and unsafe.',
+          deprecated_objects: ['Legacy X11 forwarding (Wayland is default)', 'Python 2 (Removed)'],
+          component_name: 'Operating System (Selenium)',
+        },
+      ],
+    }
+  ];
+
   runAnalysis(apiUrl: string = 'https://winfotest-da-api.azurewebsites.net/api/Metrics'): Observable<AnalysisResponse> {
     this.stateService.setLoading(true);
 
@@ -302,6 +439,21 @@ export class AgentService {
       );
     }
 
+    // Check if compatibility data is missing
+    if (!data.compatibility || data.compatibility === null) {
+      // Using mock data temporarily - uncomment below to use API endpoint
+      // const compatibilityUrl = `https://winfotest-da-api.azurewebsites.net/api/Compatibility`;
+      // requests['compatibility'] = this.http.get<any>(compatibilityUrl).pipe(
+      //   catchError((error) => {
+      //     console.error('Failed to fetch compatibility data:', error);
+      //     return of(null);
+      //   })
+      // );
+      
+      // Use mock data for now
+      requests['compatibility'] = of(this.mockCompatibilityData);
+    }
+
     // If no additional requests needed, return data as is
     if (Object.keys(requests).length === 0) {
       return of(data);
@@ -316,6 +468,9 @@ export class AgentService {
         }
         if (results['sharepoint']) {
           enriched.sharepoint = results['sharepoint'];
+        }
+        if (results['compatibility']) {
+          enriched.compatibility = results['compatibility'];
         }
         return enriched;
       })
