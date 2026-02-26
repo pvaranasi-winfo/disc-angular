@@ -15,17 +15,6 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
               {{ compatSet.base_component }} 
               <span class="version-badge">v{{ compatSet.base_target_version }}</span>
             </h2>
-            
-            @if (compatSet.architectural_rationale && compatSet.architectural_rationale.length > 0) {
-              <div class="card rationale-card">
-                <h3>Architectural Rationale</h3>
-                <ul class="rationale-list">
-                  @for (rationale of compatSet.architectural_rationale; track $index) {
-                    <li>{{ rationale }}</li>
-                  }
-                </ul>
-              </div>
-            }
 
             <div class="card">
               <h3>Compatibility Matrix</h3>
@@ -34,7 +23,8 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
                   <tr>
                     <th>Component</th>
                     <th>Current Version</th>
-                    <th>Proposed Target</th>
+                    <th>Proposed (Developers)</th>
+                    <th>Proposed (Agent)</th>
                     <th>LTS Stack</th>
                     <th>Modern Stack</th>
                     <th>Status</th>
@@ -52,7 +42,14 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
                           <span class="na">-</span>
                         }
                       </td>
-                      <td><span class="target-version">{{ item.proposed_target }}</span></td>
+                      <td>
+                        @if (item['proposed_target(from developers)']) {
+                          <span class="target-version-dev">{{ item['proposed_target(from developers)'] }}</span>
+                        } @else {
+                          <span class="na">?</span>
+                        }
+                      </td>
+                      <td><span class="target-version-agent">{{ item['proposed_target(from agent)'] }}</span></td>
                       <td><span class="lts-stack">{{ item.certified_stack_1_lts }}</span></td>
                       <td><span class="modern-stack">{{ item.certified_stack_2_modern }}</span></td>
                       <td>
@@ -65,9 +62,6 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
                             {{ item.is_compatible ? '✓' : '✗' }}
                           </span>
                           <div class="status-message">{{ item.status_message }}</div>
-                          @if (item.brief_rationale) {
-                            <div class="brief-rationale">{{ item.brief_rationale }}</div>
-                          }
                         </div>
                       </td>
                       <td>
@@ -82,6 +76,23 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
                 </tbody>
               </table>
             </div>
+
+            @if (compatSet.impact_analysis && compatSet.impact_analysis.length > 0) {
+              <div class="card impact-analysis-card">
+                <h3>Impact Analysis</h3>
+                @for (impact of compatSet.impact_analysis; track $index) {
+                  <div class="impact-item" [attr.data-risk]="impact.risk_level.toLowerCase()">
+                    <div class="impact-header">
+                      <strong class="component-name">{{ impact.component }}</strong>
+                      <span class="risk-badge" [class]="'risk-' + impact.risk_level.toLowerCase()">
+                        {{ impact.risk_level }}
+                      </span>
+                    </div>
+                    <div class="impact-description">{{ impact.description }}</div>
+                  </div>
+                }
+              </div>
+            }
 
             @if (compatSet.detailed_reasoning && compatSet.detailed_reasoning.length > 0) {
               <div class="card detailed-reasoning-card">
@@ -174,20 +185,88 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         color: var(--text);
       }
 
-      .rationale-card {
-        background: #eff6ff;
-        border-color: #bfdbfe;
+      .impact-analysis-card {
+        background: #fef3c7;
+        border-color: #fbbf24;
       }
 
-      .rationale-list {
-        margin: 0;
-        padding-left: 1.5rem;
-        list-style: disc;
+      .impact-item {
+        background: #ffffff;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #94a3b8;
+        margin-bottom: 1rem;
       }
 
-      .rationale-list li {
-        margin-bottom: 0.75rem;
+      .impact-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .impact-item[data-risk="critical"] {
+        border-left-color: #dc2626;
+      }
+
+      .impact-item[data-risk="high"] {
+        border-left-color: #ea580c;
+      }
+
+      .impact-item[data-risk="medium"] {
+        border-left-color: #f59e0b;
+      }
+
+      .impact-item[data-risk="low"] {
+        border-left-color: #10b981;
+      }
+
+      .impact-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .impact-header .component-name {
+        font-size: 0.95rem;
+        font-weight: 700;
         color: var(--text);
+      }
+
+      .risk-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .risk-badge.risk-critical {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+      }
+
+      .risk-badge.risk-high {
+        background: #ffedd5;
+        color: #ea580c;
+        border: 1px solid #fdba74;
+      }
+
+      .risk-badge.risk-medium {
+        background: #fef3c7;
+        color: #f59e0b;
+        border: 1px solid #fde047;
+      }
+
+      .risk-badge.risk-low {
+        background: #d1fae5;
+        color: #10b981;
+        border: 1px solid #6ee7b7;
+      }
+
+      .impact-description {
+        color: var(--text);
+        font-size: 0.85rem;
         line-height: 1.6;
       }
 
@@ -223,7 +302,12 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         font-weight: 600;
       }
 
-      .target-version {
+      .target-version-dev {
+        color: #7c3aed;
+        font-weight: 700;
+      }
+
+      .target-version-agent {
         color: #2563eb;
         font-weight: 700;
       }
@@ -273,13 +357,6 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         font-size: 0.8rem;
         color: var(--text);
         font-weight: 600;
-        margin-top: 0.25rem;
-      }
-
-      .brief-rationale {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        font-style: italic;
         margin-top: 0.25rem;
       }
 

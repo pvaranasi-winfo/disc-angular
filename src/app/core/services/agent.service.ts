@@ -55,152 +55,191 @@ export class AgentService {
     { msg: '> DISCOVERY ENDPOINT ACTIVATED', type: 'success', delay: 1500 },
   ];
 
-  private readonly mockCompatibilityData = [
-    {
-      id: '8a39517d-7a3e-40c4-b3f6-fddb59bcae39',
-      base_component: 'Oracle APEX',
-      base_target_version: '24.2',
-      architectural_rationale: null,
-      matrix: [
-        {
-          certified_stack_2_modern: 'Oracle Database 23ai',
-          proposed_target: '23ai',
-          action_required: null,
-          status_message: 'Compatible (Certified)',
-          component: 'Oracle Database',
-          is_compatible: true,
-          certified_stack_1_lts: 'Oracle Database 19c (19.24+)',
-          brief_rationale: null,
-          current_version: '18c XE',
-        },
-        {
-          certified_stack_2_modern: 'ORDS 25.x (Latest)',
-          proposed_target: '25.4',
-          action_required: 'Verify Release Availability',
-          status_message: 'Compatible (Projected Future Release)',
-          component: 'ORDS',
-          is_compatible: true,
-          certified_stack_1_lts: 'ORDS 24.4 LTS',
-          brief_rationale: null,
-          current_version: '22c',
-        },
-        {
-          certified_stack_2_modern: 'Java 21 LTS',
-          proposed_target: '21',
-          action_required: null,
-          status_message: 'Compatible',
-          component: 'Java Runtime',
-          is_compatible: true,
-          certified_stack_1_lts: 'Java 17 LTS',
-          brief_rationale: null,
-          current_version: 'Legacy (8/11)',
-        },
-        {
-          certified_stack_2_modern: 'ORDS Standalone (Jetty)',
-          proposed_target: 'Tomcat 9.0.Latest',
-          action_required: 'Consider Standalone Mode',
-          status_message: 'Compatible',
-          component: 'Web Server (Tomcat)',
-          is_compatible: true,
-          certified_stack_1_lts: 'Tomcat 9.0.x',
-          brief_rationale: null,
-          current_version: 'Tomcat Legacy',
-        },
-        {
-          certified_stack_2_modern: 'Oracle Linux 9',
-          proposed_target: 'Oracle Linux 9',
-          action_required: null,
-          status_message: 'Compatible',
-          component: 'Operating System (DB/App)',
-          is_compatible: true,
-          certified_stack_1_lts: 'Oracle Linux 8',
-          brief_rationale: null,
-          current_version: 'Oracle Linux 7.9',
-        },
-        {
-          certified_stack_2_modern: 'Ubuntu 24.04 LTS',
-          proposed_target: 'Ubuntu 24.04 LTS',
-          action_required: null,
-          status_message: 'Compatible',
-          component: 'Operating System (Selenium)',
-          is_compatible: true,
-          certified_stack_1_lts: 'Ubuntu 22.04 LTS',
-          brief_rationale: null,
-          current_version: 'Ubuntu 18.04 LTS',
-        },
-      ],
-      detailed_reasoning: [
-        {
-          transition_stack: 'Current (18c XE) -> Proposed (23ai) -> Certified (23ai)',
-          rationale:
-            "Oracle Database 23ai is the latest Long Term Release (LTS) and is fully certified with APEX 24.2. The transition from 18c XE to 23ai Enterprise/Free offers significant performance improvements and AI capabilities (Vector Search). Ensure 'COMPATIBLE' parameter is set to 23.0.0.",
-          deprecated_objects: [
-            'DBMS_JOB (Replaced by DBMS_SCHEDULER)',
-            'Oracle Multimedia (ORDImage)',
-            'Traditional Auditing (Replaced by Unified Auditing)',
-            'UTL_FILE (Stricter directory access)',
-          ],
-          component_name: 'Oracle Database',
-        },
-        {
-          transition_stack: 'Current (22c) -> Proposed (25.4) -> Certified (24.4 LTS / 25.x)',
-          rationale:
-            'ORDS 25.4 is a projected future release (likely Q4 2025/Q1 2026). Current stable is 24.4. APEX 24.2 requires ORDS 23.3+. Using the latest ORDS ensures support for Java 21 and HTTP/2. We recommend validating 25.4 upon release or using 24.4 LTS.',
-          deprecated_objects: [
-            'Apache FOP (PDF Printing) - External service recommended',
-            'XML-based configuration (Fully replaced by folder-based configuration)',
-            'Legacy URL syntax (if not already migrated)',
-          ],
-          component_name: 'ORDS',
-        },
-        {
-          transition_stack: 'Current (11/8) -> Proposed (21) -> Certified (21 LTS)',
-          rationale:
-            'Java 21 LTS is the recommended runtime for modern ORDS (24.2+) and offers Virtual Threads (Project Loom) for improved throughput. Java 17 LTS is also supported but 21 is preferred for long-term support alignment with the 2026 roadmap.',
-          deprecated_objects: [
-            'Security Manager (Deprecated for removal)',
-            'Legacy 32-bit support (Removed in modern builds)',
-          ],
-          component_name: 'Java Runtime',
-        },
-        {
-          transition_stack: 'Current (Tomcat 8/9) -> Proposed (Tomcat 9.0.Latest) -> Certified (Standalone / Tomcat 9)',
-          rationale:
-            "Tomcat 9.0.x is the standard 'javax' based container certified for ORDS. While Tomcat 10 (Jakarta EE) is available, ORDS Standalone (Embedded Jetty) is the preferred modern deployment for simplified management and HTTP/2 support.",
-          deprecated_objects: ['Legacy AJP Connector attributes', 'BioConnector (Removed in favor of NIO)'],
-          component_name: 'Web Server (Tomcat)',
-        },
-        {
-          transition_stack: 'Current (OL 7.9) -> Proposed (OL 9) -> Certified (OL 9)',
-          rationale:
-            'Oracle Linux 9 is the certified OS for Oracle Database 23ai and offers the latest kernel support for containerization (Podman). It aligns perfectly with the target stack.',
-          deprecated_objects: [
-            'Yum (Replaced by DNF)',
-            'Iptables (Replaced by Nftables/Firewalld)',
-            'Network Scripts (Replaced by NetworkManager)',
-          ],
-          component_name: 'Operating System (DB/App)',
-        },
-        {
-          transition_stack: 'Current (Ubuntu 18.04) -> Proposed (Ubuntu 24.04) -> Certified (Ubuntu 24.04)',
-          rationale:
-            'Ubuntu 24.04 LTS provides the necessary glibc versions for the latest Chrome/Gecko drivers and Selenium Grid 4.x. Ubuntu 18.04 is EOL and unsafe.',
-          deprecated_objects: ['Legacy X11 forwarding (Wayland is default)', 'Python 2 (Removed)'],
-          component_name: 'Operating System (Selenium)',
-        },
-      ],
-    }
-  ];
+  private generateMockCompatibilityData(): any[] {
+    return [
+      {
+        "base_target_version": "24.2",
+        "base_component": "Oracle APEX",
+        "matrix": [
+          {
+            "certified_stack_1_lts": "19c LTS",
+            "component": "Oracle Database",
+            "status_message": "Compatible but Risky (21c is Innovation Release)",
+            "action_required": "Upgrade to 23ai (LTS) or 19c (LTS). 21c is Innovation only.",
+            "proposed_target(from developers)": "21c",
+            "proposed_target(from agent)": "23ai",
+            "current_version": "18c XE",
+            "certified_stack_2_modern": "23ai LTS",
+            "is_compatible": true
+          },
+          {
+            "proposed_target(from developers)": "?",
+            "action_required": "Upgrade to Java 21 LTS.",
+            "status_message": "Not Compatible (ORDS 25.3 requires Java 17+)",
+            "certified_stack_1_lts": "17 LTS",
+            "component": "Java (JDK)",
+            "proposed_target(from agent)": "21 LTS",
+            "current_version": "11",
+            "certified_stack_2_modern": "21 LTS",
+            "is_compatible": false
+          },
+          {
+            "current_version": "22c",
+            "proposed_target(from agent)": "25.3",
+            "certified_stack_2_modern": "25.3",
+            "is_compatible": true,
+            "status_message": "Compatible",
+            "component": "Oracle REST Data Services (ORDS)",
+            "certified_stack_1_lts": "25.3",
+            "proposed_target(from developers)": "25.3",
+            "action_required": null
+          },
+          {
+            "certified_stack_1_lts": "9.0.115",
+            "component": "Apache Tomcat",
+            "status_message": "Compatible",
+            "action_required": null,
+            "proposed_target(from developers)": "9.0.113",
+            "certified_stack_2_modern": "10.1.x (with Jakarta check)",
+            "proposed_target(from agent)": "9.0.115",
+            "current_version": "9.0.62",
+            "is_compatible": true
+          },
+          {
+            "component": "Oracle Linux",
+            "certified_stack_1_lts": "8.10",
+            "status_message": "Compatible",
+            "action_required": null,
+            "proposed_target(from developers)": "8.x",
+            "current_version": "7.9",
+            "proposed_target(from agent)": "9",
+            "certified_stack_2_modern": "9.4",
+            "is_compatible": true
+          },
+          {
+            "proposed_target(from agent)": "24.04 LTS",
+            "current_version": "18.04 LTS",
+            "certified_stack_2_modern": "24.04 LTS",
+            "is_compatible": true,
+            "status_message": "Compatible",
+            "certified_stack_1_lts": "22.04 LTS",
+            "component": "Ubuntu (Selenium Nodes)",
+            "proposed_target(from developers)": "24.04",
+            "action_required": null
+          },
+          {
+            "certified_stack_1_lts": "4.38",
+            "component": "Selenium Grid",
+            "status_message": "Compatible",
+            "action_required": null,
+            "proposed_target(from developers)": "4.38",
+            "is_compatible": true,
+            "certified_stack_2_modern": "4.38",
+            "proposed_target(from agent)": "4.28+",
+            "current_version": "4.6"
+          }
+        ],
+        "impact_analysis": [
+          {
+            "risk_level": "High",
+            "description": "Proposed 21c is an Innovation Release with limited support life. Using it risks early EOL. 18c is already EOL. Upgrade to 23ai (LTS) is critical for stability.",
+            "component": "Oracle Database"
+          },
+          {
+            "risk_level": "Critical",
+            "description": "Current Java 11 will prevent ORDS 25.3 from starting. Upgrade to Java 21 is a hard dependency.",
+            "component": "Java (JDK)"
+          },
+          {
+            "risk_level": "High",
+            "description": "OL 7.9 is EOL (security risk). Upgrade to OL 9 is required for compliance.",
+            "component": "Oracle Linux"
+          }
+        ],
+        "detailed_reasoning": [
+          {
+            "transition_stack": "Current (18c XE) -> Proposed (21c) -> Certified (23ai LTS)",
+            "deprecated_objects": [
+              "Non-CDB architecture (deprecated/removed in 21c+)",
+              "BasicFile LOBs (deprecated)",
+              "DBMS_JOB (replaced by DBMS_SCHEDULER)"
+            ],
+            "component_name": "Oracle Database",
+            "rationale": "Developers proposed 21c, which is an Innovation Release with short support. Agent proposed 23ai, which is the modern LTS. APEX 24.2 requires minimum 19c. 18c XE is EOL and incompatible. 23ai is the recommended target for long-term stability."
+          },
+          {
+            "rationale": "ORDS 25.3 REQUIRES Java 17 or 21. The current Java 11 is incompatible. Developers did not specify a version. Upgrade to Java 21 LTS is mandatory for the target stack.",
+            "component_name": "Java (JDK)",
+            "transition_stack": "Current (11) -> Proposed (?) -> Certified (21 LTS)",
+            "deprecated_objects": [
+              "Security Manager (deprecated for removal)",
+              "Finalization (deprecated)",
+              "Thread.stop() (removed)"
+            ]
+          },
+          {
+            "rationale": "Target 25.3 is fully compatible with APEX 24.2. Requires Java 17+.",
+            "component_name": "Oracle REST Data Services (ORDS)",
+            "deprecated_objects": [
+              "Excel export (legacy)",
+              "PDF export (legacy FOP support changed)"
+            ],
+            "transition_stack": "Current (22c) -> Proposed (25.3) -> Certified (25.3)"
+          },
+          {
+            "deprecated_objects": [],
+            "transition_stack": "Current (9.0.62) -> Proposed (9.0.113) -> Certified (9.0.115)",
+            "rationale": "Tomcat 9.0.x is the safe 'javax' baseline. Tomcat 10+ introduces the 'jakarta' namespace which may require ORDS configuration changes. Sticking to latest 9.0.x is safe and compatible.",
+            "component_name": "Apache Tomcat"
+          },
+          {
+            "rationale": "OL 7 is EOL. OL 8 is compatible but OL 9 is the modern LTS standard.",
+            "component_name": "Oracle Linux",
+            "transition_stack": "Current (7.9) -> Proposed (8.x) -> Certified (9)",
+            "deprecated_objects": [
+              "Yum (replaced by DNF)",
+              "Iptables (replaced by Nftables)"
+            ]
+          },
+          {
+            "rationale": "Ubuntu 18.04 is EOL. 24.04 is the latest LTS and fully supports Selenium 4.x.",
+            "component_name": "Ubuntu (Selenium Nodes)",
+            "deprecated_objects": [
+              "Unity Desktop (replaced by GNOME)",
+              "Netplan (default network config)"
+            ],
+            "transition_stack": "Current (18.04) -> Proposed (24.04) -> Certified (24.04 LTS)"
+          },
+          {
+            "deprecated_objects": [
+              "JsonWireProtocol (completely removed, W3C standard only)",
+              "Legacy Grid architecture"
+            ],
+            "transition_stack": "Current (4.6) -> Proposed (4.38) -> Certified (4.38)",
+            "component_name": "Selenium Grid",
+            "rationale": "Selenium 4.38 (future version in context) is compatible. Ensure all drivers are W3C compliant."
+          }
+        ],
+        "id": "e4f3913f-f012-408f-8457-6986a5669205",
+        "_rid": "US0eAKKFDPEEAAAAAAAAAA==",
+        "_self": "dbs/US0eAA==/colls/US0eAKKFDPE=/docs/US0eAKKFDPEEAAAAAAAAAA==/",
+        "_etag": "\"08000aff-0000-2000-0000-699f19450000\"",
+        "_attachments": "attachments/",
+        "_ts": 1772034373
+      }
+
+    ];
+  }
 
   runAnalysis(apiUrl: string = 'https://winfotest-da-api.azurewebsites.net/api/Metrics'): Observable<AnalysisResponse> {
     this.stateService.setLoading(true);
 
     // First call the discover endpoint
     const discoverUrl = 'http://192.168.1.210:8001/agent/discover-duumy';
-    
+
     // Show discovery logs during discover API call
     const discoveryLogSequence$ = this.createDiscoveryLogSequence();
-    
+
     const discoverCall$ = this.http.post<any>(discoverUrl, {}).pipe(
       catchError((error) => {
         console.error('Discover API Error:', error);
@@ -418,7 +457,7 @@ export class AgentService {
     const requests: { [key: string]: Observable<any> } = {};
 
     // Check if stats is null and has databaseStatsGuid
-    if ((!data.stats || data.stats === null) ) {
+    if ((!data.stats || data.stats === null)) {
       const statsUrl = `https://winfotest-da-api.azurewebsites.net/api/DatabaseStats/13bc670b-e799-40cb-b295-9eb9166fe8bb`;
       requests['stats'] = this.http.get<any>(statsUrl).pipe(
         catchError((error) => {
@@ -429,7 +468,7 @@ export class AgentService {
     }
 
     // Check if sharepoint is null and has sharePointStatsGuid
-    if ((!data.sharepoint || data.sharepoint === null) ) {
+    if ((!data.sharepoint || data.sharepoint === null)) {
       const sharepointUrl = `https://winfotest-da-api.azurewebsites.net/api/SharePointStats/8f5a8b72-683f-49ba-a47e-a9a355b187ee`;
       requests['sharepoint'] = this.http.get<any>(sharepointUrl).pipe(
         catchError((error) => {
@@ -441,17 +480,17 @@ export class AgentService {
 
     // Check if compatibility data is missing
     if (!data.compatibility || data.compatibility === null) {
-      // Using mock data temporarily - uncomment below to use API endpoint
       // const compatibilityUrl = `https://winfotest-da-api.azurewebsites.net/api/Compatibility`;
-      // requests['compatibility'] = this.http.get<any>(compatibilityUrl).pipe(
+      // requests['compatibility'] = this.http.get<any[]>(compatibilityUrl).pipe(
+      //   map((compatibilityArray) => {
+      //     return compatibilityArray;
+      //   }),
       //   catchError((error) => {
       //     console.error('Failed to fetch compatibility data:', error);
       //     return of(null);
       //   })
       // );
-      
-      // Use mock data for now
-      requests['compatibility'] = of(this.mockCompatibilityData);
+      data.compatibility = this.generateMockCompatibilityData();
     }
 
     // If no additional requests needed, return data as is

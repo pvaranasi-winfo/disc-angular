@@ -64,21 +64,27 @@ export interface CompatibilityData {
   id: string;
   base_component: string;
   base_target_version: string;
-  architectural_rationale: string[] | null;
   matrix: CompatibilityMatrixItem[];
-  detailed_reasoning: DetailedReasoning[] | null;
+  impact_analysis: ImpactAnalysis[];
+  detailed_reasoning: DetailedReasoning[];
 }
 
 export interface CompatibilityMatrixItem {
   component: string;
   current_version: string | null;
-  proposed_target: string;
+  'proposed_target(from developers)': string | null;
+  'proposed_target(from agent)': string;
   certified_stack_1_lts: string;
   certified_stack_2_modern: string;
   is_compatible: boolean;
   status_message: string;
-  brief_rationale: string | null;
   action_required: string | null;
+}
+
+export interface ImpactAnalysis {
+  component: string;
+  risk_level: string;
+  description: string;
 }
 
 export interface DetailedReasoning {

@@ -101,19 +101,33 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
   styles: [
     `
       .app-container {
-        max-width: 1400px;
+        max-width: 1800px;
         margin: 0 auto;
-        padding: 1rem 1.5rem;
-        min-height: 100vh;
+        padding: 0.5rem 0.5rem;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
         padding: 0.5rem 0;
         border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      app-tab-navigation {
+        flex-shrink: 0;
+      }
+
+      main {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 1rem;
       }
 
       .logo {
