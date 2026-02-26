@@ -20,10 +20,10 @@ export class AnalysisStateService {
     return data?.sharepoint !== null && data?.sharepoint !== undefined;
   });
 
-  readonly deprecatedCount = computed(() => {
+  readonly invalidObjectsCount = computed(() => {
     const data = this.analysisData();
-    if (!data?.stats?.deprecated_types) return 0;
-    return Object.keys(data.stats.deprecated_types).length;
+    if (!data?.stats?.invalid_objects) return 0;
+    return data.stats.invalid_objects.reduce((sum, obj) => sum + obj.invalid_count, 0);
   });
 
   readonly storageInGB = computed(() => {

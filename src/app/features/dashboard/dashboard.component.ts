@@ -11,11 +11,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { TabNavigationComponent, Tab } from './tab-navigation.component';
 import { DiscoveryTabComponent } from './tabs/discovery-tab.component';
-import { AnalysisTabComponent } from './tabs/analysis-tab.component';
-import { SharePointTabComponent } from './tabs/sharepoint-tab.component';
-import { RecommendationTabComponent } from './tabs/recommendation-tab.component';
-import { RoadmapTabComponent } from './tabs/roadmap-tab.component';
-import { CompatibilityTabComponent } from './tabs/compatibility-tab.component';
+import { StatisticsTabComponent } from './tabs/statistics-tab.component';
+import { ImpactAnalysisTabComponent } from './tabs/impact-analysis-tab.component';
 import { AgentService } from '../../core/services/agent.service';
 import { AnalysisStateService } from '../../core/services/analysis-state.service';
 
@@ -25,11 +22,8 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
     CommonModule,
     TabNavigationComponent,
     DiscoveryTabComponent,
-    AnalysisTabComponent,
-    SharePointTabComponent,
-    RecommendationTabComponent,
-    RoadmapTabComponent,
-    CompatibilityTabComponent,
+    StatisticsTabComponent,
+    ImpactAnalysisTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -80,20 +74,11 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
             (dataGatheringStarted)="handleDataGathering()" 
           />
         }
-        @if (activeTabId() === 'analysis') {
-          <app-analysis-tab />
+        @if (activeTabId() === 'statistics') {
+          <app-statistics-tab />
         }
-        @if (activeTabId() === 'sharepoint' && hasSharePointData()) {
-          <app-sharepoint-tab />
-        }
-        @if (activeTabId() === 'recommendation') {
-          <app-recommendation-tab />
-        }
-        @if (activeTabId() === 'roadmap') {
-          <app-roadmap-tab />
-        }
-        @if (activeTabId() === 'compatibility') {
-          <app-compatibility-tab />
+        @if (activeTabId() === 'impactAnalysis') {
+          <app-impact-analysis-tab />
         }
       </main>
     </div>
@@ -215,15 +200,11 @@ export class DashboardComponent implements OnInit {
 
   readonly tabs = computed<Tab[]>(() => {
     const hasData = this.stateService.data() !== null;
-    const hasSharePoint = this.hasSharePointData();
 
     return [
       { id: 'discovery', num: '01', name: 'Discovery', enabled: true },
-      { id: 'analysis', num: '02', name: 'Analysis', enabled: hasData },
-      { id: 'sharepoint', num: '03', name: 'SharePoint', enabled: hasData && hasSharePoint },
-      { id: 'recommendation', num: '04', name: 'Recommendation', enabled: hasData },
-      { id: 'roadmap', num: '05', name: 'Roadmap', enabled: hasData },
-      { id: 'compatibility', num: '06', name: 'Compatibility', enabled: hasData },
+      { id: 'statistics', num: '02', name: 'Statistics', enabled: hasData },
+      { id: 'impactAnalysis', num: '03', name: 'Impact Analysis', enabled: hasData },
     ];
   });
 
@@ -244,7 +225,7 @@ export class DashboardComponent implements OnInit {
         }
 
         setTimeout(() => {
-          this.activeTabId.set('analysis');
+          this.activeTabId.set('statistics');
         }, 800);
       }, 500);
     });

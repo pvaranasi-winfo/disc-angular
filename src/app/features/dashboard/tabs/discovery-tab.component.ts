@@ -7,6 +7,7 @@ import {
   effect,
   OnDestroy,
   PLATFORM_ID,
+  computed,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AgentOverlayComponent } from '../../../shared/components/agent-overlay/agent-overlay.component';
@@ -97,13 +98,86 @@ declare const Chart: any;
       @if (resultsVisible()) {
         <div class="grid">
           <app-stat-card [title]="'Source Environment'" [stats]="sourceEnvironmentStats()" />
+          <app-stat-card [title]="'Database Overview'" [stats]="databaseStats()" />
+        </div>
+
+        <!-- Database Details Section -->
+        <h2>Database Details</h2>
+        <div class="grid">
           <div class="card">
-            <h3>Schema Overview</h3>
-            <div class="chart-container">
-              <canvas id="schemaChart"></canvas>
+            <h3>System Information</h3>
+            <div class="detail-list">
+              @if (dbInfo(); as info) {
+                <div class="detail-item">
+                  <span class="label">Database Name:</span>
+                  <span class="value">{{ info.db_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Version:</span>
+                  <span class="value">{{ info.db_version }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Server:</span>
+                  <span class="value">{{ info.server_name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">OS:</span>
+                  <span class="value">{{ info.os }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Instance Type:</span>
+                  <span class="value">{{ info.instance_type }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Flashback:</span>
+                  <span class="value" [class.warning]="info.flashback_status === 'NO'">{{ info.flashback_status }}</span>
+                </div>
+              }
+            </div>
+          </div>
+          <div class="card">
+            <h3>Key Parameters</h3>
+            <div class="detail-list">
+              @if (dbParameters(); as params) {
+                <div class="detail-item">
+                  <span class="label">SGA Target:</span>
+                  <span class="value">{{ formatBytes(params.sga_target.value) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Audit Trail:</span>
+                  <span class="value">{{ params.audit_trail.value }}</span>
+                </div>
+              }
             </div>
           </div>
         </div>
+
+        @if (hiddenParameters().length > 0) {
+          <div class="grid">
+            <div class="card">
+              <h3>Hidden Parameters</h3>
+              <div class="detail-list">
+                @for (param of hiddenParameters(); track $index) {
+                  <div class="detail-item">
+                    <span class="label">{{ param.name }}:</span>
+                    <span class="value">{{ param.value }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Invalid Objects Section -->
+        @if (invalidObjectsCount() > 0) {
+          <h2>⚠️ Invalid Database Objects ({{ invalidObjectsCount() }} total)</h2>
+          <div class="card">
+            <h3>Distribution by Owner and Type</h3>
+            <div class="chart-container-large">
+              <canvas id="invalidObjectsChart"></canvas>
+            </div>
+          </div>
+        }
       }
     </div>
   `,
@@ -111,7 +185,6 @@ declare const Chart: any;
     `
       .hero {
         text-align: left;
-        margin-bottom: 2rem;
         padding: 1.5rem;
         background: #ffffff;
         border-radius: 8px;
@@ -193,6 +266,66 @@ declare const Chart: any;
         position: relative;
         margin: 0.5rem 0;
       }
+
+      .chart-container-large {
+        height: 300px;
+        position: relative;
+        margin: 0.5rem 0;
+      }
+
+      .detail-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .detail-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .detail-item .label {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .detail-item .value {
+        font-weight: 700;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+
+      .detail-item .value.warning {
+        color: #dc2626;
+      }
+
+      .discovery-view h2 {
+        margin: 1.5rem 0 1rem;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .discovery-view h2::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 1.25rem;
+        background: var(--primary);
+        border-radius: 2px;
+      }
     `,
   ],
 })
@@ -200,7 +333,7 @@ export class DiscoveryTabComponent implements OnDestroy {
   private readonly stateService = inject(AnalysisStateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly agentService = inject(AgentService);
-  private schemaChartInstance: any = null;
+  private invalidObjectsChartInstance: any = null;
 
   readonly analysisStarted = output<void>();
   readonly dataGatheringStarted = output<void>();
@@ -217,11 +350,52 @@ export class DiscoveryTabComponent implements OnDestroy {
   readonly showRunAnalysisModal = signal<boolean>(false);
   readonly showCompatibilityModal = signal<boolean>(false);
 
-  readonly sourceEnvironmentStats = signal<StatItem[]>([
-    { label: 'Database Version', value: 'Oracle 18c XE' },
-    { label: 'OS Version', value: 'Ubuntu 18.04' },
-    { label: 'Java Runtime', value: 'OpenJDK 8' },
-  ]);
+  readonly data = this.stateService.data;
+  readonly invalidObjectsCount = this.stateService.invalidObjectsCount;
+
+  readonly sourceEnvironmentStats = computed<StatItem[]>(() => {
+    const data = this.stateService.data();
+    if (!data?.comparison) {
+      return [
+        { label: 'Database Engine', value: 'Oracle 18c XE' },
+        { label: 'Operating System', value: 'Ubuntu 18.04' },
+        { label: 'Java Runtime', value: 'OpenJDK 8' },
+      ];
+    }
+
+    return data.comparison.map(item => ({
+      label: item.component,
+      value: item.current,
+    }));
+  });
+
+  readonly dbInfo = computed(() => {
+    return this.data()?.stats?.database_information || null;
+  });
+
+  readonly dbParameters = computed(() => {
+    return this.data()?.stats?.parameters || null;
+  });
+
+  readonly hiddenParameters = computed(() => {
+    return this.data()?.stats?.parameters?.hidden_parameters || [];
+  });
+
+  readonly invalidObjects = computed(() => {
+    return this.data()?.stats?.invalid_objects || [];
+  });
+
+  readonly databaseStats = computed<StatItem[]>(() => {
+    const info = this.dbInfo();
+    if (!info) return [];
+
+    return [
+      { label: 'Database', value: info.db_name },
+      { label: 'Server', value: info.server_name },
+      { label: 'Instance Type', value: info.instance_type },
+      { label: 'Data Size (GB)', value: info.data_size_gb.toFixed(2) },
+    ];
+  });
 
   constructor() {
     // Check if analysis already completed
@@ -234,15 +408,15 @@ export class DiscoveryTabComponent implements OnDestroy {
     // Render chart when data becomes available
     effect(() => {
       const data = this.stateService.data();
-      if (data?.stats && this.resultsVisible()) {
-        setTimeout(() => this.renderSchemaChart(data.stats), 100);
+      if (data?.stats?.invalid_objects && this.resultsVisible()) {
+        setTimeout(() => this.renderInvalidObjectsChart(data.stats.invalid_objects), 100);
       }
     });
   }
 
   ngOnDestroy(): void {
-    if (this.schemaChartInstance) {
-      this.schemaChartInstance.destroy();
+    if (this.invalidObjectsChartInstance) {
+      this.invalidObjectsChartInstance.destroy();
     }
   }
 
@@ -310,14 +484,24 @@ export class DiscoveryTabComponent implements OnDestroy {
   confirmCheckCompatibility(): void {
     this.showCompatibilityModal.set(false);
     this.isCheckingCompatibility.set(true);
+    const overlay = this.agentOverlay();
+    if (overlay) {
+      overlay.show();
+    }
 
     this.agentService.checkCompatibility().subscribe({
       next: (response) => {
         this.isCheckingCompatibility.set(false);
+        if (overlay) {
+          overlay.hide();
+        }
         console.log('Compatibility check successful:', response);
       },
       error: (error) => {
         this.isCheckingCompatibility.set(false);
+        if (overlay) {
+          overlay.hide();
+        }
         console.error('Compatibility check failed:', error);
       },
     });
@@ -338,8 +522,8 @@ export class DiscoveryTabComponent implements OnDestroy {
 
     // Render chart with current data
     const data = this.stateService.data();
-    if (data?.stats) {
-      setTimeout(() => this.renderSchemaChart(data.stats), 100);
+    if (data?.stats?.invalid_objects) {
+      setTimeout(() => this.renderInvalidObjectsChart(data.stats.invalid_objects), 100);
     }
   }
 
@@ -351,44 +535,85 @@ export class DiscoveryTabComponent implements OnDestroy {
     this.isAnalyzing.set(false);
   }
 
-  private renderSchemaChart(stats: any): void {
+  formatBytes(bytes: string): string {
+    const numBytes = parseInt(bytes, 10);
+    const gb = numBytes / (1024 * 1024 * 1024);
+    return `${gb.toFixed(2)} GB`;
+  }
+
+  private renderInvalidObjectsChart(invalidObjects: any[]): void {
     // Only run in browser environment (not during SSR)
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    const canvas = document.getElementById('schemaChart') as HTMLCanvasElement;
+    const canvas = document.getElementById('invalidObjectsChart') as HTMLCanvasElement;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (this.schemaChartInstance) {
-      this.schemaChartInstance.destroy();
+    if (this.invalidObjectsChartInstance) {
+      this.invalidObjectsChartInstance.destroy();
     }
 
-    this.schemaChartInstance = new Chart(ctx, {
-      type: 'doughnut',
+    // Create labels combining owner and object_type
+    const labels = invalidObjects.map(obj => `${obj.owner} - ${obj.object_type}`);
+    const counts = invalidObjects.map(obj => obj.invalid_count);
+    const colors = invalidObjects.map((_, index) => {
+      const hue = (index * 137.5) % 360; // Golden angle for nice distribution
+      return `hsl(${hue}, 70%, 60%)`;
+    });
+
+    this.invalidObjectsChartInstance = new Chart(ctx, {
+      type: 'bar',
       data: {
-        labels: ['Tables', 'Indexes', 'Constraints'],
+        labels: labels,
         datasets: [
           {
-            data: [stats.table_count, stats.index_count, stats.constraint_count],
-            backgroundColor: ['#2563eb', '#60a5fa', '#94a3b8'],
-            borderWidth: 2,
-            borderColor: '#ffffff',
+            label: 'Invalid Objects Count',
+            data: counts,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('60%', '40%')),
+            borderWidth: 1,
           },
         ],
       },
       options: {
+        responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
+        indexAxis: 'y',
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 11 },
+              stepSize: 1,
+            },
+            grid: { color: '#e2e8f0' },
+            title: {
+              display: true,
+              text: 'Count',
               color: '#1e293b',
-              boxWidth: 10,
-              font: { size: 11, weight: 'bold' },
+              font: { size: 12, weight: 'bold' },
+            },
+          },
+          y: {
+            ticks: { 
+              color: '#1e293b', 
+              font: { size: 10, weight: '600' },
+            },
+            grid: { display: false },
+          },
+        },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => {
+                return `Invalid Objects: ${context.parsed.x}`;
+              },
             },
           },
         },

@@ -31,7 +31,6 @@ export interface Tab {
     `
       .chevron-nav {
         display: flex;
-        margin-bottom: 2rem;
         background: #ffffff;
         border-radius: 6px;
         overflow: hidden;

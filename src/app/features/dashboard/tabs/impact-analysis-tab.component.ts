@@ -4,20 +4,22 @@ import { AnalysisStateService } from '../../../core/services/analysis-state.serv
 import { CompatibilityData } from '../../../models/analysis-response.model';
 
 @Component({
-  selector: 'app-compatibility-tab',
+  selector: 'app-impact-analysis-tab',
   imports: [CommonModule],
   template: `
-    <div class="compatibility-view">
+    <div class="impact-analysis-view">
+      <!-- Compatibility Section -->
       @if (compatibility() && compatibility()!.length > 0) {
+        <h2>Component Compatibility Analysis</h2>
         @for (compatSet of compatibility(); track compatSet.id) {
           <div class="compat-section">
-            <h2>
+            <h3>
               {{ compatSet.base_component }} 
               <span class="version-badge">v{{ compatSet.base_target_version }}</span>
-            </h2>
+            </h3>
 
             <div class="card">
-              <h3>Compatibility Matrix</h3>
+              <h4>Compatibility Matrix</h4>
               <table class="compatibility-table">
                 <thead>
                   <tr>
@@ -79,7 +81,7 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
 
             @if (compatSet.impact_analysis && compatSet.impact_analysis.length > 0) {
               <div class="card impact-analysis-card">
-                <h3>Impact Analysis</h3>
+                <h4>Impact Analysis</h4>
                 @for (impact of compatSet.impact_analysis; track $index) {
                   <div class="impact-item" [attr.data-risk]="impact.risk_level.toLowerCase()">
                     <div class="impact-header">
@@ -96,10 +98,10 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
 
             @if (compatSet.detailed_reasoning && compatSet.detailed_reasoning.length > 0) {
               <div class="card detailed-reasoning-card">
-                <h3>Detailed Component Analysis</h3>
+                <h4>Detailed Component Analysis</h4>
                 @for (reasoning of compatSet.detailed_reasoning; track $index) {
                   <div class="reasoning-item">
-                    <h4>{{ reasoning.component_name }}</h4>
+                    <h5>{{ reasoning.component_name }}</h5>
                     <div class="transition-stack">
                       <strong>Transition Path:</strong> {{ reasoning.transition_stack }}
                     </div>
@@ -125,39 +127,78 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
           <p>No compatibility data available</p>
         </div>
       }
+
+
+      <!-- Roadmap Section -->
+      <h2>Detailed Implementation Roadmap</h2>
+      <div class="card">
+        <table class="comparison-table roadmap-table">
+          <thead>
+            <tr>
+              <th>Application / Layer</th>
+              <th>Current Version</th>
+              <th>Target Version</th>
+              <th>Guidelines & Observations</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (step of roadmap(); track $index) {
+              <tr>
+                <td><strong>{{ step.application }}</strong></td>
+                <td><span class="bad">{{ step.current }}</span></td>
+                <td><span class="good">{{ step.target }}</span></td>
+                <td>
+                  <div class="observation"><em>{{ step.observation }}</em></div>
+                  <div class="guideline"><strong>Guideline:</strong> {{ step.guideline }}</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   `,
   styles: [
     `
-      .compatibility-view {
+      .impact-analysis-view {
         padding: 1rem 0;
       }
 
+      .impact-analysis-view h2 {
+        margin: 1.5rem 0 1rem;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .impact-analysis-view h2::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 1.25rem;
+        background: var(--primary);
+        border-radius: 2px;
+      }
+
       .compat-section {
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
       }
 
       .compat-section:last-child {
         margin-bottom: 0;
       }
 
-      .compat-section > h2 {
-        margin: 0 0 1.5rem;
-        font-size: 1.5rem;
-        font-weight: 800;
+      .compat-section > h3 {
+        margin: 1.5rem 0 1rem;
+        font-size: 1.15rem;
+        font-weight: 700;
         color: var(--text);
         display: flex;
         align-items: center;
         gap: 0.75rem;
-      }
-
-      .compat-section > h2::before {
-        content: '';
-        display: inline-block;
-        width: 4px;
-        height: 1.5rem;
-        background: var(--primary);
-        border-radius: 2px;
       }
 
       .version-badge {
@@ -178,11 +219,18 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         margin-bottom: 1.5rem;
       }
 
-      .card h3 {
+      .card h4 {
         margin: 0 0 1rem;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         color: var(--text);
+      }
+
+      .card h5 {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary);
       }
 
       .impact-analysis-card {
@@ -270,11 +318,13 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         line-height: 1.6;
       }
 
+      .comparison-table,
       .compatibility-table {
         width: 100%;
         border-collapse: collapse;
       }
 
+      .comparison-table th,
       .compatibility-table th {
         text-align: left;
         padding: 0.75rem 0.5rem;
@@ -286,6 +336,7 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         border-bottom: 2px solid var(--border);
       }
 
+      .comparison-table td,
       .compatibility-table td {
         padding: 0.75rem 0.5rem;
         border-bottom: 1px solid var(--border-soft);
@@ -295,6 +346,16 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
 
       .compatibility-table tr.incompatible {
         background: #fef2f2;
+      }
+
+      .bad {
+        color: #dc2626;
+        font-weight: 700;
+      }
+
+      .good {
+        color: #2563eb;
+        font-weight: 700;
       }
 
       .current-version {
@@ -370,6 +431,20 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         font-weight: 600;
       }
 
+      .observation {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        font-style: italic;
+      }
+
+      .guideline {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+        background: #f8fafc;
+        border-left: 2px solid var(--primary);
+      }
+
       .na {
         color: var(--text-muted);
         font-style: italic;
@@ -389,13 +464,6 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
 
       .reasoning-item:last-child {
         margin-bottom: 0;
-      }
-
-      .reasoning-item h4 {
-        margin: 0 0 0.75rem;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--primary);
       }
 
       .transition-stack {
@@ -451,8 +519,14 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
     `,
   ],
 })
-export class CompatibilityTabComponent {
+export class ImpactAnalysisTabComponent {
   private readonly stateService = inject(AnalysisStateService);
+
+  readonly data = this.stateService.data;
+
+  readonly roadmap = computed(() => {
+    return this.data()?.roadmap || [];
+  });
 
   readonly compatibility = computed<CompatibilityData[] | null>(() => {
     const data = this.stateService.data();
