@@ -3,7 +3,7 @@ name: Deploy to Azure Web App
 on:
   push:
     branches:
-      - compatibility-check
+      - master 
   workflow_dispatch:
 
 env:
