@@ -16,6 +16,7 @@ import {
   StatItem,
 } from '../../../shared/components/stat-card/stat-card.component';
 import { AnalysisStateService } from '../../../core/services/analysis-state.service';
+import { AgentService } from '../../../core/services/agent.service';
 
 declare const Chart: any;
 
@@ -30,8 +31,8 @@ declare const Chart: any;
         <div class="actions">
           <button
             id="gather-data-btn"
-            class="btn secondary"
-            [disabled]="isGatheringData() || isAnalyzing()"
+            class="btn premium"
+            [disabled]="isGatheringData() || isAnalyzing() || isCheckingCompatibility()"
             (click)="gatherData()"
           >
             @if (isGatheringData()) {
@@ -43,13 +44,25 @@ declare const Chart: any;
           <button
             id="run-analysis-btn"
             class="btn premium"
-            [disabled]="isAnalyzing() || isGatheringData()"
+            [disabled]="isAnalyzing() || isGatheringData() || isCheckingCompatibility()"
             (click)="runAnalysis()"
           >
             @if (isAnalyzing()) {
               Agent Working...
             } @else {
               Run Diagnostic Analysis
+            }
+          </button>
+          <button
+            id="check-compatibility-btn"
+            class="btn premium"
+            [disabled]="isCheckingCompatibility() || isAnalyzing() || isGatheringData()"
+            (click)="checkCompatibility()"
+          >
+            @if (isCheckingCompatibility()) {
+              Checking...
+            } @else {
+              Check Compatibility
             }
           </button>
         </div>
@@ -71,6 +84,14 @@ declare const Chart: any;
         [isVisible]="showRunAnalysisModal()"
         (confirmed)="confirmRunAnalysis()"
         (cancelled)="cancelRunAnalysis()"
+      />
+
+      <app-confirmation-modal
+        [title]="'Check Compatibility'"
+        [message]="'Are you sure you want to check compatibility? This will verify system compatibility requirements.'"
+        [isVisible]="showCompatibilityModal()"
+        (confirmed)="confirmCheckCompatibility()"
+        (cancelled)="cancelCheckCompatibility()"
       />
 
       @if (resultsVisible()) {
@@ -178,6 +199,7 @@ declare const Chart: any;
 export class DiscoveryTabComponent implements OnDestroy {
   private readonly stateService = inject(AnalysisStateService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly agentService = inject(AgentService);
   private schemaChartInstance: any = null;
 
   readonly analysisStarted = output<void>();
@@ -190,8 +212,10 @@ export class DiscoveryTabComponent implements OnDestroy {
   readonly analysisCompleted = signal<boolean>(false);
   readonly isGatheringData = signal<boolean>(false);
   readonly dataGatheringCompleted = signal<boolean>(false);
+  readonly isCheckingCompatibility = signal<boolean>(false);
   readonly showGatherDataModal = signal<boolean>(false);
   readonly showRunAnalysisModal = signal<boolean>(false);
+  readonly showCompatibilityModal = signal<boolean>(false);
 
   readonly sourceEnvironmentStats = signal<StatItem[]>([
     { label: 'Database Version', value: 'Oracle 18c XE' },
@@ -273,6 +297,34 @@ export class DiscoveryTabComponent implements OnDestroy {
 
   cancelRunAnalysis(): void {
     this.showRunAnalysisModal.set(false);
+  }
+
+  checkCompatibility(): void {
+    if (this.isCheckingCompatibility()) {
+      return;
+    }
+
+    this.showCompatibilityModal.set(true);
+  }
+
+  confirmCheckCompatibility(): void {
+    this.showCompatibilityModal.set(false);
+    this.isCheckingCompatibility.set(true);
+
+    this.agentService.checkCompatibility().subscribe({
+      next: (response) => {
+        this.isCheckingCompatibility.set(false);
+        console.log('Compatibility check successful:', response);
+      },
+      error: (error) => {
+        this.isCheckingCompatibility.set(false);
+        console.error('Compatibility check failed:', error);
+      },
+    });
+  }
+
+  cancelCheckCompatibility(): void {
+    this.showCompatibilityModal.set(false);
   }
 
   showResults(): void {

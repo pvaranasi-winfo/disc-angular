@@ -235,7 +235,7 @@ export class AgentService {
     this.stateService.setLoading(true);
 
     // First call the discover endpoint
-    const discoverUrl = 'http://192.168.1.210:8001/agent/discover-duumy';
+    const discoverUrl = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/discover-duumy';
 
     // Show discovery logs during discover API call
     const discoveryLogSequence$ = this.createDiscoveryLogSequence();
@@ -352,7 +352,16 @@ export class AgentService {
     this.completionSubject.next(data);
   }
 
-  gatherDataToMCP(apiUrl: string = 'http://192.168.1.210:8003/agent/data-gathering-dummy'): Observable<any> {
+  checkCompatibility(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/compatibility'): Observable<any> {
+    return this.http.post<any>(apiUrl, {}).pipe(
+      catchError((error) => {
+        console.error('Compatibility Check Error:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering-dummy'): Observable<any> {
     const gatheringLogs: AgentLog[] = [
       { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 500 },
       { msg: '> Collecting OS information...', type: 'system', delay: 1000 },
