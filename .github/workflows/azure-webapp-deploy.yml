@@ -3,11 +3,11 @@ name: Deploy to Azure Web App
 on:
   push:
     branches:
-      - compatibility-matrix
+      - master
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: winfotest-da-ui    # Set this to your Azure Web App name
+  AZURE_WEBAPP_NAME: winfotest-da-ui   
   AZURE_WEBAPP_PACKAGE_PATH: '.'
   NODE_VERSION: '20.x'
 
