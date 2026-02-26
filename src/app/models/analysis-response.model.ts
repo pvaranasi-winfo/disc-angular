@@ -3,7 +3,7 @@ export interface AnalysisResponse {
   recommendations: Recommendation[];
   roadmap: RoadmapItem[];
   sharepoint: SharePointData | null;
-  stats: SchemaStats;
+  stats: DatabaseStats;
   strategy: Strategy;
   compatibility?: CompatibilityData[];
 }
@@ -44,15 +44,44 @@ export interface FileSample {
   size: number;
 }
 
-export interface SchemaStats {
-  avg_cols_per_table: number;
-  constraint_count: number;
-  data_type_distribution: Record<string, number>;
-  deprecated_types: Record<string, number>;
-  index_count: number;
-  table_count: number;
-  total_columns: number;
-  unique_data_types: string[];
+export interface DatabaseStats {
+  id: string;
+  invalid_objects: InvalidObject[];
+  database_information: DatabaseInformation;
+  parameters: DatabaseParameters;
+  stats_type: string;
+}
+
+export interface InvalidObject {
+  owner: string;
+  object_type: string;
+  invalid_count: number;
+}
+
+export interface DatabaseInformation {
+  db_name: string;
+  db_version: string;
+  server_name: string;
+  os: string;
+  flashback_status: string;
+  dataguard_role: string;
+  instance_type: string;
+  data_size_gb: number;
+}
+
+export interface DatabaseParameters {
+  sga_target: {
+    name: string;
+    value: string;
+  };
+  audit_trail: {
+    name: string;
+    value: string;
+  };
+  hidden_parameters: Array<{
+    name: string;
+    value: string;
+  }>;
 }
 
 export interface Strategy {

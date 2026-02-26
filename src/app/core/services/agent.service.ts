@@ -47,12 +47,14 @@ export class AgentService {
     { msg: '> Checking 21c Feature Alignment...', type: 'system', delay: 3000 },
     { msg: '> FETCHING SHAREPOINT DIAGNOSTICS...', type: 'system', delay: 3500 },
     { msg: '> COMPILING FINAL REPORT...', type: 'success', delay: 4500 },
+    { msg: '> Analysis In Progress... Please Wait...', type: 'success', delay: 4500 },
   ];
 
   private readonly discoveryLogs: AgentLog[] = [
     { msg: '> INITIATING DISCOVERY PROCESS...', type: 'system', delay: 500 },
     { msg: '> Preparing agent environment...', type: 'system', delay: 1000 },
     { msg: '> DISCOVERY ENDPOINT ACTIVATED', type: 'success', delay: 1500 },
+    { msg: '> DISCOVERY In Progress... Please Wait...', type: 'success', delay: 1500 },
   ];
 
   // private generateMockCompatibilityData(): any[] {
@@ -235,7 +237,7 @@ export class AgentService {
     this.stateService.setLoading(true);
 
     // First call the discover endpoint
-    const discoverUrl = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/discover';
+    const discoverUrl = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/discover-dummy';
 
     // Show discovery logs during discover API call
     const discoveryLogSequence$ = this.createDiscoveryLogSequence();
@@ -352,16 +354,68 @@ export class AgentService {
     this.completionSubject.next(data);
   }
 
-  checkCompatibility(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/compatibility'): Observable<any> {
-    return this.http.post<any>(apiUrl, {}).pipe(
+  checkCompatibility(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/compatibility-dummy'): Observable<any> {
+    const compatibilityLogs: AgentLog[] = [
+      { msg: '> INITIALIZING COMPATIBILITY CHECK...', type: 'system', delay: 500 },
+      { msg: '> Analyzing current environment...', type: 'system', delay: 1000 },
+      { msg: '> Checking Oracle version compatibility...', type: 'system', delay: 1500 },
+      { msg: '> Validating Java requirements...', type: 'system', delay: 2000 },
+      { msg: '> Verifying ORDS compatibility...', type: 'system', delay: 2500 },
+      { msg: '> Analyzing component dependencies...', type: 'system', delay: 3000 },
+      { msg: '> COMPATIBILITY In Progress', type: 'success', delay: 3500 },
+    ];
+
+    // Call the real API
+    const apiCall$ = this.http.post<any>(apiUrl, {}).pipe(
       catchError((error) => {
         console.error('Compatibility Check Error:', error);
         return throwError(() => error);
       })
     );
+
+    // Create progressive log sequence for compatibility check
+    const logSequence$ = this.createCompatibilityLogSequence(compatibilityLogs);
+
+    // Run logs and API in parallel
+    return forkJoin({
+      logs: logSequence$,
+      data: apiCall$,
+    }).pipe(
+      map((result) => result.data)
+    );
   }
 
-  gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering'): Observable<any> {
+  private createCompatibilityLogSequence(logs: AgentLog[]): Observable<void> {
+    const logObservables = logs.map((log, index) => {
+      const delayMs = index > 0 ? log.delay - logs[index - 1].delay : log.delay;
+
+      return timer(delayMs).pipe(
+        map(() => {
+          this.logSubject.next(log);
+          const percentage = Math.min(
+            100,
+            Math.floor(((index + 1) / logs.length) * 100)
+          );
+          this.progressSubject.next({
+            percentage,
+            status: log.msg,
+          });
+        })
+      );
+    });
+
+    return concat(...logObservables).pipe(
+      map(() => void 0),
+      finalize(() => {
+        this.progressSubject.next({
+          percentage: 100,
+          status: 'Compatibility Check Complete',
+        });
+      })
+    );
+  }
+
+  gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering-dummy'): Observable<any> {
     const gatheringLogs: AgentLog[] = [
       { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 500 },
       { msg: '> Collecting OS information...', type: 'system', delay: 1000 },
@@ -466,15 +520,118 @@ export class AgentService {
     const requests: { [key: string]: Observable<any> } = {};
 
     // Check if stats is null and has databaseStatsGuid
-    if ((!data.stats || data.stats === null)) {
-      const statsUrl = `https://winfotest-da-api.azurewebsites.net/api/DatabaseStats/13bc670b-e799-40cb-b295-9eb9166fe8bb`;
-      requests['stats'] = this.http.get<any>(statsUrl).pipe(
-        catchError((error) => {
-          console.error('Failed to fetch database stats:', error);
-          return of(null);
-        })
-      );
-    }
+    // if ((!data.stats || data.stats === null)) {
+    //   const statsUrl = `https://winfotest-da-api.azurewebsites.net/api/DatabaseStats/13bc670b-e799-40cb-b295-9eb9166fe8bb`;
+    //   requests['stats'] = this.http.get<any>(statsUrl).pipe(
+    //     catchError((error) => {
+    //       console.error('Failed to fetch database stats:', error);
+    //       return of(null);
+    //     })
+    //   );
+    // }
+
+    data.stats = {
+    "invalid_objects": [
+        {
+            "owner": "WATS_PROD",
+            "object_type": "PACKAGE BODY",
+            "invalid_count": 14
+        },
+        {
+            "owner": "SYS",
+            "object_type": "VIEW",
+            "invalid_count": 5
+        },
+        {
+            "owner": "PUBLIC",
+            "object_type": "SYNONYM",
+            "invalid_count": 5
+        },
+        {
+            "owner": "WATS_PROD",
+            "object_type": "TYPE",
+            "invalid_count": 3
+        },
+        {
+            "owner": "SYS",
+            "object_type": "PACKAGE BODY",
+            "invalid_count": 2
+        },
+        {
+            "owner": "WATS_XE",
+            "object_type": "PACKAGE BODY",
+            "invalid_count": 2
+        },
+        {
+            "owner": "SYS",
+            "object_type": "PACKAGE",
+            "invalid_count": 2
+        },
+        {
+            "owner": "WATS_PROD",
+            "object_type": "PROCEDURE",
+            "invalid_count": 1
+        },
+        {
+            "owner": "WATS_PROD",
+            "object_type": "FUNCTION",
+            "invalid_count": 1
+        },
+        {
+            "owner": "WATS_PROD",
+            "object_type": "TRIGGER",
+            "invalid_count": 1
+        },
+        {
+            "owner": "WATS_XE",
+            "object_type": "PROCEDURE",
+            "invalid_count": 1
+        },
+        {
+            "owner": "TEST",
+            "object_type": "PACKAGE",
+            "invalid_count": 1
+        },
+        {
+            "owner": "SYSTEM",
+            "object_type": "PROCEDURE",
+            "invalid_count": 1
+        }
+    ],
+    "database_information": {
+        "db_name": "WATSDEV1",
+        "db_version": "Oracle Database 18c Express Edition Release 18.0.0.0.0 - Production",
+        "server_name": "watsdev01",
+        "os": "Linux x86 64-bit",
+        "flashback_status": "NO",
+        "dataguard_role": "PRIMARY",
+        "instance_type": "NON-RAC",
+        "data_size_gb": 15.15
+    },
+    "parameters": {
+        "sga_target": {
+            "name": "sga_target",
+            "value": "1610612736"
+        },
+        "audit_trail": {
+            "name": "audit_trail",
+            "value": "DB, EXTENDED"
+        },
+        "hidden_parameters": [
+            {
+                "name": "_trace_files_public",
+                "value": "FALSE"
+            }
+        ]
+    },
+    "stats_type": "database",
+    "id": "13bc670b-e799-40cb-b295-9eb9166fe8bb",
+    "_rid": "US0eAI4qKU8BAAAAAAAAAA==",
+    "_self": "dbs/US0eAA==/colls/US0eAI4qKU8=/docs/US0eAI4qKU8BAAAAAAAAAA==/",
+    "_etag": "\"150048f2-0000-2000-0000-69a014870000\"",
+    "_attachments": "attachments/",
+    "_ts": 1772098695
+};
 
     // Check if sharepoint is null and has sharePointStatsGuid
     if ((!data.sharepoint || data.sharepoint === null)) {
@@ -492,7 +649,7 @@ export class AgentService {
       const compatibilityUrl = `https://winfotest-da-api.azurewebsites.net/api/CompatibilityMatrix`;
       requests['compatibility'] = this.http.get<any[]>(compatibilityUrl).pipe(
         map((compatibilityArray) => {
-          return compatibilityArray;
+          return compatibilityArray && compatibilityArray.length > 0 ? [compatibilityArray[0]] : [];
         }),
         catchError((error) => {
           console.error('Failed to fetch compatibility data:', error);
