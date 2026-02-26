@@ -235,7 +235,7 @@ export class AgentService {
     this.stateService.setLoading(true);
 
     // First call the discover endpoint
-    const discoverUrl = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/discover-duumy';
+    const discoverUrl = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/discover';
 
     // Show discovery logs during discover API call
     const discoveryLogSequence$ = this.createDiscoveryLogSequence();
@@ -361,7 +361,7 @@ export class AgentService {
     );
   }
 
-  gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering-dummy'): Observable<any> {
+  gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering'): Observable<any> {
     const gatheringLogs: AgentLog[] = [
       { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 500 },
       { msg: '> Collecting OS information...', type: 'system', delay: 1000 },
