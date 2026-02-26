@@ -3,7 +3,7 @@ name: Deploy to Azure Web App
 on:
   push:
     branches:
-      - compatability-matrix
+      - compatibility-matrix
   workflow_dispatch:
 
 env:
