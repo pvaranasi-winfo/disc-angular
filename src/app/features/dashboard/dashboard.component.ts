@@ -15,6 +15,7 @@ import { AnalysisTabComponent } from './tabs/analysis-tab.component';
 import { SharePointTabComponent } from './tabs/sharepoint-tab.component';
 import { RecommendationTabComponent } from './tabs/recommendation-tab.component';
 import { RoadmapTabComponent } from './tabs/roadmap-tab.component';
+import { CompatibilityTabComponent } from './tabs/compatibility-tab.component';
 import { AgentService } from '../../core/services/agent.service';
 import { AnalysisStateService } from '../../core/services/analysis-state.service';
 
@@ -28,6 +29,7 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
     SharePointTabComponent,
     RecommendationTabComponent,
     RoadmapTabComponent,
+    CompatibilityTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -90,25 +92,42 @@ import { AnalysisStateService } from '../../core/services/analysis-state.service
         @if (activeTabId() === 'roadmap') {
           <app-roadmap-tab />
         }
+        @if (activeTabId() === 'compatibility') {
+          <app-compatibility-tab />
+        }
       </main>
     </div>
   `,
   styles: [
     `
       .app-container {
-        max-width: 1400px;
+        max-width: 1800px;
         margin: 0 auto;
-        padding: 1rem 1.5rem;
-        min-height: 100vh;
+        padding: 0.5rem 0.5rem;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
         padding: 0.5rem 0;
         border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      app-tab-navigation {
+        flex-shrink: 0;
+      }
+
+      main {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 1rem;
       }
 
       .logo {
@@ -204,6 +223,7 @@ export class DashboardComponent implements OnInit {
       { id: 'sharepoint', num: '03', name: 'SharePoint', enabled: hasData && hasSharePoint },
       { id: 'recommendation', num: '04', name: 'Recommendation', enabled: hasData },
       { id: 'roadmap', num: '05', name: 'Roadmap', enabled: hasData },
+      { id: 'compatibility', num: '06', name: 'Compatibility', enabled: hasData },
     ];
   });
 
