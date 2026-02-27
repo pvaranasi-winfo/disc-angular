@@ -251,7 +251,7 @@ export class DashboardComponent implements OnInit {
         }
 
         setTimeout(() => {
-          this.activeTabId.set('statistics');
+          this.activeTabId.set('impactAnalysis');
         }, 800);
       }, 500);
     });
