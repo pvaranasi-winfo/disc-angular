@@ -54,7 +54,7 @@ declare const Chart: any;
               Run Diagnostic Analysis
             }
           </button>
-          <button
+          <!-- <button
             id="check-compatibility-btn"
             class="btn premium"
             [disabled]="isCheckingCompatibility() || isAnalyzing() || isGatheringData()"
@@ -65,7 +65,7 @@ declare const Chart: any;
             } @else {
               Check Compatibility
             }
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -167,17 +167,6 @@ declare const Chart: any;
             </div>
           </div>
         }
-
-        <!-- Invalid Objects Section -->
-        @if (invalidObjectsCount() > 0) {
-          <h2>⚠️ Invalid Database Objects ({{ invalidObjectsCount() }} total)</h2>
-          <div class="card">
-            <h3>Distribution by Owner and Type</h3>
-            <div class="chart-container-large">
-              <canvas id="invalidObjectsChart"></canvas>
-            </div>
-          </div>
-        }
       }
     </div>
   `,
@@ -267,12 +256,6 @@ declare const Chart: any;
         margin: 0.5rem 0;
       }
 
-      .chart-container-large {
-        height: 300px;
-        position: relative;
-        margin: 0.5rem 0;
-      }
-
       .detail-list {
         display: flex;
         flex-direction: column;
@@ -333,7 +316,6 @@ export class DiscoveryTabComponent implements OnDestroy {
   private readonly stateService = inject(AnalysisStateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly agentService = inject(AgentService);
-  private invalidObjectsChartInstance: any = null;
 
   readonly analysisStarted = output<void>();
   readonly dataGatheringStarted = output<void>();
@@ -351,16 +333,11 @@ export class DiscoveryTabComponent implements OnDestroy {
   readonly showCompatibilityModal = signal<boolean>(false);
 
   readonly data = this.stateService.data;
-  readonly invalidObjectsCount = this.stateService.invalidObjectsCount;
 
   readonly sourceEnvironmentStats = computed<StatItem[]>(() => {
     const data = this.stateService.data();
     if (!data?.comparison) {
-      return [
-        { label: 'Database Engine', value: 'Oracle 18c XE' },
-        { label: 'Operating System', value: 'Ubuntu 18.04' },
-        { label: 'Java Runtime', value: 'OpenJDK 8' },
-      ];
+      return [];
     }
 
     return data.comparison.map(item => ({
@@ -379,10 +356,6 @@ export class DiscoveryTabComponent implements OnDestroy {
 
   readonly hiddenParameters = computed(() => {
     return this.data()?.stats?.parameters?.hidden_parameters || [];
-  });
-
-  readonly invalidObjects = computed(() => {
-    return this.data()?.stats?.invalid_objects || [];
   });
 
   readonly databaseStats = computed<StatItem[]>(() => {
@@ -404,21 +377,9 @@ export class DiscoveryTabComponent implements OnDestroy {
       this.analysisCompleted.set(true);
       this.resultsVisible.set(true);
     }
-
-    // Render chart when data becomes available
-    effect(() => {
-      const data = this.stateService.data();
-      if (data?.stats?.invalid_objects && this.resultsVisible()) {
-        setTimeout(() => this.renderInvalidObjectsChart(data.stats.invalid_objects), 100);
-      }
-    });
   }
 
-  ngOnDestroy(): void {
-    if (this.invalidObjectsChartInstance) {
-      this.invalidObjectsChartInstance.destroy();
-    }
-  }
+  ngOnDestroy(): void {}
 
   gatherData(): void {
     if (this.isGatheringData()) {
@@ -519,12 +480,6 @@ export class DiscoveryTabComponent implements OnDestroy {
     if (overlay) {
       overlay.hide();
     }
-
-    // Render chart with current data
-    const data = this.stateService.data();
-    if (data?.stats?.invalid_objects) {
-      setTimeout(() => this.renderInvalidObjectsChart(data.stats.invalid_objects), 100);
-    }
   }
 
   hideOverlay(): void {
@@ -539,85 +494,5 @@ export class DiscoveryTabComponent implements OnDestroy {
     const numBytes = parseInt(bytes, 10);
     const gb = numBytes / (1024 * 1024 * 1024);
     return `${gb.toFixed(2)} GB`;
-  }
-
-  private renderInvalidObjectsChart(invalidObjects: any[]): void {
-    // Only run in browser environment (not during SSR)
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const canvas = document.getElementById('invalidObjectsChart') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (this.invalidObjectsChartInstance) {
-      this.invalidObjectsChartInstance.destroy();
-    }
-
-    // Create labels combining owner and object_type
-    const labels = invalidObjects.map(obj => `${obj.owner} - ${obj.object_type}`);
-    const counts = invalidObjects.map(obj => obj.invalid_count);
-    const colors = invalidObjects.map((_, index) => {
-      const hue = (index * 137.5) % 360; // Golden angle for nice distribution
-      return `hsl(${hue}, 70%, 60%)`;
-    });
-
-    this.invalidObjectsChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Invalid Objects Count',
-            data: counts,
-            backgroundColor: colors,
-            borderColor: colors.map(c => c.replace('60%', '40%')),
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        scales: {
-          x: {
-            beginAtZero: true,
-            ticks: { 
-              color: '#64748b', 
-              font: { size: 11 },
-              stepSize: 1,
-            },
-            grid: { color: '#e2e8f0' },
-            title: {
-              display: true,
-              text: 'Count',
-              color: '#1e293b',
-              font: { size: 12, weight: 'bold' },
-            },
-          },
-          y: {
-            ticks: { 
-              color: '#1e293b', 
-              font: { size: 10, weight: '600' },
-            },
-            grid: { display: false },
-          },
-        },
-        plugins: { 
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (context: any) => {
-                return `Invalid Objects: ${context.parsed.x}`;
-              },
-            },
-          },
-        },
-      },
-    });
   }
 }
