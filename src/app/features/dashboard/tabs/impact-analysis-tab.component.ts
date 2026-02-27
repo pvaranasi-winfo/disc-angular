@@ -96,6 +96,24 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
               </div>
             }
 
+            @if (recommendations() && recommendations().length > 0) {
+              <div class="card remediation-insights-card">
+                <h4>Smart Remediation Insights</h4>
+                @for (rec of recommendations(); track $index) {
+                  <div class="impact-item remediation-item">
+                    <div class="impact-header">
+                      <strong class="component-name">{{ rec.feature }}</strong>
+                      <span class="remediation-badge">Smart Remediation</span>
+                    </div>
+                    <div class="impact-description">{{ rec.description }}</div>
+                    <div class="impacted-objects">
+                      <strong>Impacted:</strong> {{ rec.impacted_objects.join(', ') }}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
             @if (compatSet.detailed_reasoning && compatSet.detailed_reasoning.length > 0) {
               <div class="card detailed-reasoning-card">
                 <h4>Detailed Component Analysis</h4>
@@ -506,6 +524,47 @@ import { CompatibilityData } from '../../../models/analysis-response.model';
         color: var(--text);
       }
 
+      .remediation-insights-card {
+        background: #f0f9ff;
+        border-color: #60a5fa;
+      }
+
+      .remediation-item {
+        background: #ffffff;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #3b82f6;
+        margin-bottom: 1rem;
+      }
+
+      .remediation-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .remediation-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #dbeafe;
+        color: #2563eb;
+        border: 1px solid #93c5fd;
+      }
+
+      .impacted-objects {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-soft);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      .impacted-objects strong {
+        color: var(--text);
+      }
+
       .no-data {
         text-align: center;
         padding: 3rem 1rem;
@@ -531,5 +590,9 @@ export class ImpactAnalysisTabComponent {
   readonly compatibility = computed<CompatibilityData[] | null>(() => {
     const data = this.stateService.data();
     return data?.compatibility || null;
+  });
+
+  readonly recommendations = computed(() => {
+    return this.data()?.recommendations || [];
   });
 }

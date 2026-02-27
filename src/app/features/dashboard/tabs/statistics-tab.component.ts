@@ -7,8 +7,9 @@ import {
   computed,
   effect,
   AfterViewInit,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AnalysisStateService } from '../../../core/services/analysis-state.service';
 import { StatCardComponent, StatItem } from '../../../shared/components/stat-card/stat-card.component';
 
@@ -19,19 +20,16 @@ declare const Chart: any;
   imports: [CommonModule, StatCardComponent],
   template: `
     <div class="statistics-view">
-      <h2>21c Feature Alignment</h2>
-      <div class="recommendations-container grid">
-        @for (rec of recommendations(); track $index) {
-          <div class="card">
-            <span class="badge">21c Feature</span>
-            <h3>{{ rec.feature }}</h3>
-            <p>{{ rec.description }}</p>
-            <div class="impact">
-              <strong>Impacted:</strong> {{ rec.impacted_objects.join(', ') }}
-            </div>
+      <!-- Invalid Objects Section -->
+      @if (invalidObjectsCount() > 0) {
+        <h2>⚠️ Invalid Database Objects ({{ invalidObjectsCount() }} total)</h2>
+        <div class="card">
+          <h3>Distribution by Owner and Type</h3>
+          <div class="chart-container-large">
+            <canvas id="invalidObjectsChart"></canvas>
           </div>
-        }
-      </div>
+        </div>
+      }
 
       <!-- SharePoint Section -->
       @if (hasSharePointData()) {
@@ -99,6 +97,12 @@ declare const Chart: any;
 
       .chart-container {
         height: 180px;
+        position: relative;
+        margin: 0.5rem 0;
+      }
+
+      .chart-container-large {
+        height: 300px;
         position: relative;
         margin: 0.5rem 0;
       }
@@ -207,30 +211,6 @@ declare const Chart: any;
         font-size: 0.8rem;
       }
 
-      .badge {
-        display: inline-block;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        color: var(--primary);
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-
-      .impact {
-        margin-top: 1rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--border-soft);
-        font-size: 0.85rem;
-        color: var(--text-muted);
-      }
-
-      .impact strong {
-        color: var(--text);
-      }
-
       .file-list {
         display: flex;
         flex-direction: column;
@@ -261,14 +241,17 @@ declare const Chart: any;
 })
 export class StatisticsTabComponent implements AfterViewInit, OnDestroy {
   private readonly stateService = inject(AnalysisStateService);
+  private readonly platformId = inject(PLATFORM_ID);
   private spTypeChartInstance: any = null;
   private spFileChartInstance: any = null;
+  private invalidObjectsChartInstance: any = null;
 
   readonly data = this.stateService.data;
   readonly hasSharePointData = this.stateService.hasSharePointData;
+  readonly invalidObjectsCount = this.stateService.invalidObjectsCount;
 
-  readonly recommendations = computed(() => {
-    return this.data()?.recommendations || [];
+  readonly invalidObjects = computed(() => {
+    return this.data()?.stats?.invalid_objects || [];
   });
 
   readonly fileSamples = computed(() => {
@@ -293,6 +276,9 @@ export class StatisticsTabComponent implements AfterViewInit, OnDestroy {
       if (currentData?.sharepoint) {
         this.renderSharePointCharts(currentData.sharepoint);
       }
+      if (currentData?.stats?.invalid_objects && this.invalidObjectsCount() > 0) {
+        setTimeout(() => this.renderInvalidObjectsChart(currentData.stats.invalid_objects), 100);
+      }
     });
   }
 
@@ -300,6 +286,9 @@ export class StatisticsTabComponent implements AfterViewInit, OnDestroy {
     const currentData = this.data();
     if (currentData?.sharepoint) {
       this.renderSharePointCharts(currentData.sharepoint);
+    }
+    if (currentData?.stats?.invalid_objects && this.invalidObjectsCount() > 0) {
+      setTimeout(() => this.renderInvalidObjectsChart(currentData.stats.invalid_objects), 100);
     }
   }
 
@@ -309,6 +298,9 @@ export class StatisticsTabComponent implements AfterViewInit, OnDestroy {
     }
     if (this.spFileChartInstance) {
       this.spFileChartInstance.destroy();
+    }
+    if (this.invalidObjectsChartInstance) {
+      this.invalidObjectsChartInstance.destroy();
     }
   }
 
@@ -383,6 +375,86 @@ export class StatisticsTabComponent implements AfterViewInit, OnDestroy {
           legend: {
             position: 'right',
             labels: { boxWidth: 10, font: { size: 10 } },
+          },
+        },
+      },
+    });
+  }
+
+  private renderInvalidObjectsChart(invalidObjects: any[]): void {
+    // Only run in browser environment (not during SSR)
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const canvas = document.getElementById('invalidObjectsChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (this.invalidObjectsChartInstance) {
+      this.invalidObjectsChartInstance.destroy();
+    }
+
+    // Create labels combining owner and object_type
+    const labels = invalidObjects.map(obj => `${obj.owner} - ${obj.object_type}`);
+    const counts = invalidObjects.map(obj => obj.invalid_count);
+    const colors = invalidObjects.map((_, index) => {
+      const hue = (index * 137.5) % 360; // Golden angle for nice distribution
+      return `hsl(${hue}, 70%, 60%)`;
+    });
+
+    this.invalidObjectsChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Invalid Objects Count',
+            data: counts,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('60%', '40%')),
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 11 },
+              stepSize: 1,
+            },
+            grid: { color: '#e2e8f0' },
+            title: {
+              display: true,
+              text: 'Count',
+              color: '#1e293b',
+              font: { size: 12, weight: 'bold' },
+            },
+          },
+          y: {
+            ticks: { 
+              color: '#1e293b', 
+              font: { size: 10, weight: '600' },
+            },
+            grid: { display: false },
+          },
+        },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => {
+                return `Invalid Objects: ${context.parsed.x}`;
+              },
+            },
           },
         },
       },
