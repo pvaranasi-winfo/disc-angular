@@ -33,28 +33,28 @@ export class AgentService {
   readonly completion$ = this.completionSubject.asObservable();
 
   private readonly agentLogs: AgentLog[] = [
-    { msg: '> INITIALIZING DISCOVERY AGENT...', type: 'system', delay: 1000 },
-    { msg: '> Connecting to local OCI environment...', type: 'system', delay: 2000 },
-    { msg: '> FOUND: Legacy Oracle 18c XE Instance', type: 'success', delay: 2200 },
-    { msg: '> SCANNING SCHEMA: WATS_PROD', type: 'system', delay: 2200 },
-    { msg: '> INFO: 24 Tables identified', type: 'system', delay: 2500 },
+    { msg: '> INITIALIZING DISCOVERY AGENT...', type: 'system', delay: 10000 },
+    { msg: '> Connecting to local OCI environment...', type: 'system', delay: 11000 },
+    { msg: '> FOUND: Legacy Oracle 18c XE Instance', type: 'success', delay: 12000 },
+    { msg: '> SCANNING SCHEMA: WATS_PROD', type: 'system', delay: 13000 },
+    { msg: '> INFO: 24 Tables identified', type: 'system', delay: 14000 },
     {
       msg: '> WARNING: Deprecated data types detected (LONG, VARCHAR2)',
       type: 'warning',
-      delay: 4000,
+      delay: 15000,
     },
-    { msg: '> ANALYZING UPGRADE COMPATIBILITY...', type: 'system', delay: 4000 },
-    { msg: '> Checking 21c Feature Alignment...', type: 'system', delay: 4000 },
-    { msg: '> FETCHING SHAREPOINT DIAGNOSTICS...', type: 'system', delay: 4500 },
-    { msg: '> COMPILING FINAL REPORT...', type: 'success', delay: 9000 },
-    { msg: '> Analysis In Progress... Please Wait...', type: 'success', delay: 9000 },
+    { msg: '> ANALYZING UPGRADE COMPATIBILITY...', type: 'system', delay: 16000 },
+    { msg: '> Checking 21c Feature Alignment...', type: 'system', delay: 17000 },
+    { msg: '> FETCHING SHAREPOINT DIAGNOSTICS...', type: 'system', delay: 18000 },
+    { msg: '> COMPILING FINAL REPORT...', type: 'success', delay: 19000 },
+    { msg: '> Analysis In Progress... Please Wait...', type: 'success', delay: 20000 },
   ];
 
   private readonly discoveryLogs: AgentLog[] = [
-    { msg: '> INITIATING DISCOVERY PROCESS...', type: 'system', delay: 4000 },
-    { msg: '> Preparing agent environment...', type: 'system', delay: 3000 },
-    { msg: '> DISCOVERY ENDPOINT ACTIVATED', type: 'success', delay: 4500 },
-    { msg: '> DISCOVERY In Progress... Please Wait...', type: 'success', delay: 4500 },
+    { msg: '> INITIATING DISCOVERY PROCESS...', type: 'system', delay: 10000 },
+    { msg: '> Preparing agent environment...', type: 'system', delay: 11000 },
+    { msg: '> DISCOVERY ENDPOINT ACTIVATED', type: 'success', delay: 12000 },
+    { msg: '> DISCOVERY In Progress... Please Wait...', type: 'success', delay: 13000 },
   ];
 
 
@@ -169,7 +169,7 @@ export class AgentService {
       finalize(() => {
         this.progressSubject.next({
           percentage: 100,
-          status: 'Discovery Complete',
+          status: 'Discovery IN Progress',
         });
       })
     );
@@ -242,12 +242,12 @@ export class AgentService {
 
   gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering'): Observable<any> {
     const gatheringLogs: AgentLog[] = [
-      { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 500 },
-      { msg: '> Collecting OS information...', type: 'system', delay: 1000 },
-      { msg: '> Retrieving GitHub information...', type: 'system', delay: 1500 },
-      { msg: '> Fetching Oracle information...', type: 'system', delay: 2000 },
-      { msg: '> Gathering SharePoint information...', type: 'system', delay: 2500 },
-      { msg: '> DATA GATHERING COMPLETE', type: 'success', delay: 3000 },
+      { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 10000 },
+      { msg: '> Collecting OS information...', type: 'system', delay: 10000 },
+      { msg: '> Retrieving GitHub information...', type: 'system', delay: 10000 },
+      { msg: '> Fetching Oracle information...', type: 'system', delay: 10000 },
+      { msg: '> Gathering SharePoint information...', type: 'system', delay: 10000  },
+      { msg: '> DATA GATHERING IN PROGRESS...', type: 'success', delay: 10000 },
     ];
 
     // Call the real API
