@@ -243,11 +243,11 @@ export class AgentService {
   gatherDataToMCP(apiUrl: string = 'https://winfotest-da-agent-chdcb5h0dngff0eu.centralindia-01.azurewebsites.net/agent/data-gathering'): Observable<any> {
     const gatheringLogs: AgentLog[] = [
       { msg: '> INITIALIZING DATA GATHERING...', type: 'system', delay: 10000 },
-      { msg: '> Collecting OS information...', type: 'system', delay: 10000 },
-      { msg: '> Retrieving GitHub information...', type: 'system', delay: 10000 },
-      { msg: '> Fetching Oracle information...', type: 'system', delay: 10000 },
-      { msg: '> Gathering SharePoint information...', type: 'system', delay: 10000  },
-      { msg: '> DATA GATHERING IN PROGRESS...', type: 'success', delay: 10000 },
+      { msg: '> Collecting OS information...', type: 'system', delay: 12000 },
+      { msg: '> Retrieving GitHub information...', type: 'system', delay: 14000 },
+      { msg: '> Fetching Oracle information...', type: 'system', delay: 16000 },
+      { msg: '> Gathering SharePoint information...', type: 'system', delay: 18000  },
+      { msg: '> DATA GATHERING IN PROGRESS...', type: 'success', delay: 20000 },
     ];
 
     // Call the real API
